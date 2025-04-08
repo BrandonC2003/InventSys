@@ -1,0 +1,6 @@
+﻿CREATE TABLE [dbo].[RolCatalogo]
+(
+	[IdRol] INT IDENTITY(1,1) NOT NULL, 
+    [Rol] NVARCHAR(30) NOT NULL,
+	CONSTRAINT PK_RolCatalog PRIMARY KEY CLUSTERED ([IdRol] ASC)
+)
