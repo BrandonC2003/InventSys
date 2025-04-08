@@ -3,6 +3,7 @@
     [IdUsuario] INT NOT NULL,
     [IdRol] INT NOT NULL, 
     [UserName] NVARCHAR(50) NOT NULL, 
+    [Password] NVARCHAR(MAX) NOT NULL,
     [Nombre] NVARCHAR(50) NOT NULL, 
     [Apellido] NVARCHAR(50) NOT NULL, 
     [CorreoElectronico] NVARCHAR(100) NOT NULL, 
