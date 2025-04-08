@@ -3,6 +3,8 @@ using InventSys.Domain.Entities;
 using InventSys.Domain.Enums;
 using InventSys.Domain.Exceptions;
 using InventSys.Domain.Interfaces;
+using System.Data;
+using System.Runtime.InteropServices;
 
 namespace InventSys.Application.UseCases
 {
@@ -96,6 +98,18 @@ namespace InventSys.Application.UseCases
             {
                 throw UserException.UsuarioNoEncontrado();
             }
+
+            if (usuarioDto.NuevoPassword != usuarioDto.NuevoPassword2)
+            {
+                throw UserException.PasswordDiferentes();
+            }
+
+            if (usuario.Password == usuarioDto.NuevoPassword)
+            {
+                throw UserException.PasswordRepetido();
+            }
+
+            usuarioDto.NuevoPassword = await _encryptService.EncryptAsync(usuarioDto.NuevoPassword);
 
             var encryptedPassword = await _encryptService.EncryptAsync(usuarioDto.NuevoPassword);
             await _usuarioService.CambiarClaveAsync(userId, encryptedPassword);
