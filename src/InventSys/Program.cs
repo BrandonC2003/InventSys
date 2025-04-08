@@ -1,10 +1,15 @@
 using InventSys.Components;
+using InventSys.Infrastructure.Data.EntityFramework;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddDbContext<InventSysDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("InventSysDb")));
 
 var app = builder.Build();
 
