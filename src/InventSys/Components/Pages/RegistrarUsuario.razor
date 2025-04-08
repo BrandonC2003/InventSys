@@ -1,0 +1,83 @@
+﻿@page "/registrar-usuario"
+@inject UsuarioUseCase UsuarioUseCase
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<h3>Registrar Usuario</h3>
+
+<EditForm Model="usuarioDto" OnValidSubmit="HandleSubmit" FormName="Test">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="UserName">Nombre de Usuario</label>
+        <InputText id="UserName" class="form-control" @bind-Value="usuarioDto.UserName" />
+        <ValidationMessage For="@(() => usuarioDto.UserName)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Nombre">Nombre</label>
+        <InputText id="Nombre" class="form-control" @bind-Value="usuarioDto.Nombre" />
+        <ValidationMessage For="@(() => usuarioDto.Nombre)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Apellido">Apellido</label>
+        <InputText id="Apellido" class="form-control" @bind-Value="usuarioDto.Apellido" />
+        <ValidationMessage For="@(() => usuarioDto.Apellido)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Correo">Correo Electrónico</label>
+        <InputText id="Correo" class="form-control" @bind-Value="usuarioDto.Correo" />
+        <ValidationMessage For="@(() => usuarioDto.Correo)" />
+    </div>
+
+    <div class="form-group">
+        <label for="PrimeraPassword">Contraseña</label>
+        <InputText id="PrimeraPassword" class="form-control" @bind-Value="usuarioDto.NuevoPassword" InputType="password" />
+        <ValidationMessage For="@(() => usuarioDto.NuevoPassword)" />
+    </div>
+
+    <div class="form-group">
+        <label for="SegundoPassword">Confirmar Contraseña</label>
+        <InputText id="SegundoPassword" class="form-control" @bind-Value="usuarioDto.NuevoPassword2" InputType="password" />
+        <ValidationMessage For="@(() => usuarioDto.NuevoPassword2)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Activo">Activo</label>
+        <InputCheckbox id="Activo" class="form-check-input" @bind-Value="usuarioDto.Activo" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Registrar</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+
+@code {
+    private UsuarioDto usuarioDto = new UsuarioDto
+        {
+            Activo = true, // Valor predeterminado
+            IdRol = 1
+        };
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            await UsuarioUseCase.CrearUsuarioAsync(usuarioDto);
+        }
+        catch (Exception ex)
+        {
+            // Manejar errores (mostrar mensaje al usuario, etc.)
+            Console.WriteLine($"Error al registrar usuario: {ex.Message}");
+        }
+    }
+
+    private void Cancelar()
+    {
+        NavigationManager.NavigateTo("/usuarios"); // Redirigir a la lista de usuarios
+    }
+}

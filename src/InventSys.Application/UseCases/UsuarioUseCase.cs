@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 namespace InventSys.Application.UseCases
 {
-    public class UsuarioUseCas(IUsuarioService usuarioService, 
+    public class UsuarioUseCase(IUsuarioService usuarioService, 
         IAuthService authService, 
         IEncryptService encryptService)
     {
@@ -58,6 +58,7 @@ namespace InventSys.Application.UseCases
                 Nombre = usuarioDto.Nombre,
                 Apellido = usuarioDto.Apellido,
                 CorreoElectronico = usuarioDto.Correo,
+                IdRol  = usuarioDto.IdRol,
                 Estado = 0,
                 Activo = true
             };

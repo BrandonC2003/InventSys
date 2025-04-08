@@ -8,13 +8,14 @@ namespace InventSys.Application.DTOs
 {
     public class UsuarioDto
     {
-        public required string UserName { get; set; }
-        public required string Password { get; set; }
-        public required string NuevoPassword { get; set; }
-        public required string NuevoPassword2 { get; set; }
-        public required string Nombre { get; set; }
-        public required string Apellido { get; set; }
-        public required string Correo { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public int IdRol { get; set; }
+        public string Password { get; set; } = string.Empty;
+        public string NuevoPassword { get; set; } = string.Empty;
+        public string NuevoPassword2 { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
+        public string Apellido { get; set; } = string.Empty;
+        public string Correo { get; set; } = string.Empty;
         public bool Activo { get; set; } = true;
     }
 }

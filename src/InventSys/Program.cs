@@ -2,6 +2,8 @@ using InventSys.Infrastructure.Services;
 using InventSys.Infrastructure.Data.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using InventSys.Domain.Interfaces;
+using InventSys.Components;
+using InventSys.Application.UseCases;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,33 +19,35 @@ builder.Services.AddAuthentication("Cookies")
         options.AccessDeniedPath = "/AccessDenied"; // Ruta para acceso denegado
     });
 
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
 // Registrar AuthService
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IEncryptService, EncryptService>();
+builder.Services.AddScoped<UsuarioUseCase>();
 builder.Services.AddHttpContextAccessor();
-
-// Agregar servicios de Blazor
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
 
 var app = builder.Build();
 
-// Configurar middleware
+// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 
-app.UseRouting();
+app.UseStaticFiles();
+app.UseAntiforgery();
 app.UseAuthentication(); // Habilitar autenticación
 app.UseAuthorization();  // Habilitar autorización
 
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.Run();
