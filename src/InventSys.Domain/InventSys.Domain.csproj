@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Entities\" />
-    <Folder Include="Interfaces\" />
+    <ProjectReference Include="..\InventSys.DB\InventSys.DB.sqlproj" />
   </ItemGroup>
 
 </Project>
