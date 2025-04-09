@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using InventSys.Domain.Interfaces;
 using InventSys.Components;
 using InventSys.Application.UseCases;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +30,8 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IEncryptService, EncryptService>();
 builder.Services.AddScoped<UsuarioUseCase>();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddMudServices();
+
 
 var app = builder.Build();
 

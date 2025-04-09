@@ -1,4 +1,5 @@
 ﻿@page "/registrar-usuario"
+
 @inject UsuarioUseCase UsuarioUseCase
 @inject NavigationManager NavigationManager
 
@@ -53,7 +54,9 @@
 
     <button type="submit" class="btn btn-primary">Registrar</button>
     <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+
 </EditForm>
+<MudButton Color="Color.Primary">Click Me</MudButton>
 
 
 @code {
