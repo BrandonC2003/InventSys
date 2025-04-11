@@ -11,29 +11,40 @@ namespace InventSys.Pages.Account
         private readonly UsuarioUseCase _usuarioUseCase = usuarioUseCase;
 
         [BindProperty]
-        public LogInDto Input { get; set; }
+        public required LogInDto Input { get; set; }
+        public string? ErrorMessage { get; set; }
 
-        public string ReturnUrl { get; set; }
+        public string? ReturnUrl { get; set; }
 
-        public IActionResult OnGet(string returnUrl = null)
+        public IActionResult OnGet(string? returnUrl = null)
         {
             ReturnUrl = returnUrl;
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             ReturnUrl = returnUrl ?? Url.Content("~/");
+            ErrorMessage = string.Empty;
 
             if (!ModelState.IsValid)
                 return Page();
 
 
-            if (!await _usuarioUseCase.IniciarSesionAsync(Input))
+            try
             {
-                ModelState.AddModelError(string.Empty, "Usuario o contraseña incorrectos");
+                if (!await _usuarioUseCase.IniciarSesionAsync(Input))
+                {
+                    ErrorMessage = "Las credenciales son incorrectas";
+                    return Page();
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
                 return Page();
             }
+            
 
             return LocalRedirect(ReturnUrl);
         }
