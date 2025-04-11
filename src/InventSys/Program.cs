@@ -68,7 +68,6 @@ app.UseAntiforgery();
 
 // Configuración de endpoints
 app.MapRazorPages(); // Mapeo de páginas Razor (DEBE estar antes de MapBlazorHub)
-app.MapBlazorHub();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
