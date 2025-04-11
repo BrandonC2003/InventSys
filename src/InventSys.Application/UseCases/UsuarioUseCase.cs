@@ -3,36 +3,43 @@ using InventSys.Domain.Entities;
 using InventSys.Domain.Enums;
 using InventSys.Domain.Exceptions;
 using InventSys.Domain.Interfaces;
-using System.Data;
-using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
 
 namespace InventSys.Application.UseCases
 {
     public class UsuarioUseCase(IUsuarioService usuarioService, 
         IAuthService authService, 
-        IEncryptService encryptService)
+        IEncryptService encryptService,
+        AuthenticationStateProvider authProvider)
     {
         private readonly IUsuarioService _usuarioService = usuarioService;
         private readonly IAuthService _authService = authService;
         private readonly IEncryptService _encryptService = encryptService;
+        private readonly AuthenticationStateProvider _authProvider = authProvider;
 
         public async Task<bool> IniciarSesionAsync(LogInDto logInDto)
         {
-            logInDto.Password = await _encryptService.EncryptAsync(logInDto.Password);
+            string encryptedPassword = await _encryptService.EncryptAsync(logInDto.Password);
 
-            return await _authService.IniciarSesionAsync(logInDto.UserName, logInDto.Password);
+            return await _authService.IniciarSesionAsync(logInDto.UserName, encryptedPassword);
+        }
+
+        public async Task<int> GetUserIdAsync()
+        {
+            var authState = await _authProvider.GetAuthenticationStateAsync();
+            
+            if (!int.TryParse(authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int userId))
+            {
+                throw UserException.UsuarioNoEncontrado();
+            }
+            return userId;
         }
 
         public async Task<bool> CerrarSesionAsync()
         {
-            int userId = await _authService.ObtenerIdUsuario();
+            int userId = await GetUserIdAsync();
             return await _authService.CerrarSesionAsync(userId);
-        }
-
-        public async Task<bool> PerteneceRol(string rolName)
-        {
-            int userId = await _authService.ObtenerIdUsuario();
-            return await _authService.PerteneceRol(userId, rolName);
         }
 
         public async Task<List<Usuarios>> ObtenerUsuariosAsync()
@@ -65,39 +72,34 @@ namespace InventSys.Application.UseCases
             await _usuarioService.CrearUsuarioAsync(usuario);
         }
 
-        public async Task ActualizarUsuarioAsync(UsuarioDto usuarioDto)
+        public async Task ActualizarUsuarioAsync(int userId, UsuarioDto usuarioDto)
         {
-            int userId = await _authService.ObtenerIdUsuario();
 
             var usuario = new Usuarios
             {
                 UserName = usuarioDto.UserName,
-                Password = string.Empty, //El método no actualiza contraseña
                 Nombre = usuarioDto.Nombre,
                 Apellido = usuarioDto.Apellido,
                 CorreoElectronico = usuarioDto.Correo,
-                Estado = 0,
                 Activo = usuarioDto.Activo
             };
 
             await _usuarioService.ActualizarUsuarioAsync(userId, usuario);
         }
 
-        public async Task CambiarEstadoAsync(UserStatus userStatus)
+        public async Task CambiarEstadoAsync(int userId,UserStatus userStatus)
         {
-            int userId = await _authService.ObtenerIdUsuario();
             await _usuarioService.CambiarEstadoAsync(userId, userStatus);
         }
 
-        public async Task CambiarClaveAsync(UsuarioDto usuarioDto)
+        public async Task CambiarClaveAsync(UsuarioDto usuarioDto, int userId)
         {
-            int userId = await _authService.ObtenerIdUsuario();
 
             var usuario = await _usuarioService.ObtenerUsuarioAsync(userId);
 
             if (usuario == null || usuario.Password != await _encryptService.EncryptAsync(usuarioDto.Password))
             {
-                throw UserException.UsuarioNoEncontrado();
+                throw UserException.ClaveIncorrecta();
             }
 
             if (usuarioDto.NuevoPassword != usuarioDto.NuevoPassword2)

@@ -1,21 +1,24 @@
 ﻿using InventSys.Domain.Interfaces;
 using InventSys.Infrastructure.Data.EntityFramework;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace InventSys.Infrastructure.Services
 {
-    public class AuthService(IHttpContextAccessor httpContextAccessor, InventSysDbContext context) : IAuthService
+    public class AuthService(InventSysDbContext context, IHttpContextAccessor httpContextAccessor) : IAuthService
     {
         private readonly InventSysDbContext _context = context;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
         public async Task<bool> CerrarSesionAsync(int userId)
         {
-            await _httpContextAccessor.HttpContext!.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await _httpContextAccessor.HttpContext.SignOutAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme);
+
             return true;
         }
 
@@ -37,44 +40,20 @@ namespace InventSys.Infrastructure.Services
                 new(ClaimTypes.Role, usuario.IdRol.ToString()) // Asumiendo que IdRol representa el rol
             };
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsIdentity = new ClaimsIdentity(claims, "CustomAuth");
 
-            // Configurar las propiedades de autenticación
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
             var authProperties = new AuthenticationProperties
             {
-                IsPersistent = true // Mantener la sesión activa
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
             };
 
-            // Iniciar sesión
-            await _httpContextAccessor.HttpContext!.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties);
-
-            return true;
-        }
-
-        public async Task<int> ObtenerIdUsuario()
-        {
-            var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (userIdClaim == null)
-            {
-                return await Task.FromResult(0);
-            }
-
-            return await Task.FromResult(int.Parse(userIdClaim.Value));
-        }
-
-        public async Task<bool> PerteneceRol(int userId, string rolName)
-        {
-            // Verificar si el usuario pertenece al rol especificado
-            var usuario = await _context.Usuarios
-                .Include(u => u.IdRolNavigation)
-                .FirstOrDefaultAsync(u => u.IdUsuario == userId);
-
-            if (usuario == null || usuario.IdRolNavigation.Rol != rolName)
-                return false;
+            await _httpContextAccessor.HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            claimsPrincipal,
+            authProperties);
 
             return true;
         }

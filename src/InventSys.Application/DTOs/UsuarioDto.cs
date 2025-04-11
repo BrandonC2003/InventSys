@@ -17,5 +17,6 @@ namespace InventSys.Application.DTOs
         public string Apellido { get; set; } = string.Empty;
         public string Correo { get; set; } = string.Empty;
         public bool Activo { get; set; } = true;
+        public byte Estado { get; set; } = 0;
     }
 }

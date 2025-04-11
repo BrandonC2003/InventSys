@@ -1,10 +1,14 @@
-using InventSys.Infrastructure.Services;
-using InventSys.Infrastructure.Data.EntityFramework;
-using Microsoft.EntityFrameworkCore;
-using InventSys.Domain.Interfaces;
-using InventSys.Components;
 using InventSys.Application.UseCases;
+using InventSys.Components.Auth;
+using InventSys.Components;
+using InventSys.Domain.Interfaces;
+using InventSys.Infrastructure.Data.EntityFramework;
+using InventSys.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,44 +16,59 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<InventSysDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("InventSysDb")));
 
-// Configurar autenticación basada en cookies
-builder.Services.AddAuthentication("Cookies")
-    .AddCookie("Cookies", options =>
+// Configuración de autenticación (DEBE ir antes de AddRazorComponents)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
-        options.LoginPath = "/Login"; // Ruta para la página de inicio de sesión
-        options.AccessDeniedPath = "/AccessDenied"; // Ruta para acceso denegado
+        options.Cookie.Name = "MyAppAuthCookie";
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied"; // Cambiado para consistencia
+        options.ExpireTimeSpan = TimeSpan.FromHours(2);
     });
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddAuthorization();
 
-// Registrar AuthService
+// Servicios adicionales
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IEncryptService, EncryptService>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<UsuarioUseCase>();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddMudServices();
 
+// Configuración de Blazor y Razor Pages
+builder.Services.AddRazorPages(); // Esto es CRUCIAL para páginas Razor
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+// MudBlazor
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
+    config.SnackbarConfiguration.PreventDuplicates = true;
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configuración del pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
-app.UseAntiforgery();
-app.UseAuthentication(); // Habilitar autenticación
-app.UseAuthorization();  // Habilitar autorización
 
+// ORDEN CRÍTICO DE MIDDLEWARES:
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseAntiforgery();
+
+// Configuración de endpoints
+app.MapRazorPages(); // Mapeo de páginas Razor (DEBE estar antes de MapBlazorHub)
+app.MapBlazorHub();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
