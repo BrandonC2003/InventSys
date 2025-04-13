@@ -1,17 +1,13 @@
 ﻿@rendermode InteractiveServer
 
-<MudPaper Width="250px" Class="py-3" Elevation="0">
-    <MudNavMenu>
-        <MudText Typo="Typo.h6" Class="px-4"> <InventSysLogo/> </MudText>
-        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Secondary Text</MudText>
-        <MudDivider Class="my-2" />
-        <MudNavLink Href="/">Dashboard</MudNavLink>
-        <MudNavLink Href="/">Servers</MudNavLink>
-        <MudNavLink Href="/" Disabled="true">Billing</MudNavLink>
-        <MudNavGroup Title="Settings" Expanded="true">
-            <MudNavLink Href="/counter">Users</MudNavLink>
-            <MudNavLink Href="/">Security</MudNavLink>
-        </MudNavGroup>
-        <MudNavLink Href="/about">About</MudNavLink>
-    </MudNavMenu>
-</MudPaper>
+<MudNavMenu>
+    <MudNavLink Icon="@Icons.Material.Filled.Dashboard" Href="/">Tablero</MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.Sell" Href="/">Ventas</MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.ShoppingCart" Href="/">Compras</MudNavLink>
+    <MudNavGroup Icon="@Icons.Material.Filled.Settings" Title="Configuración" Expanded="false">
+        <MudNavLink Icon="@Icons.Material.Filled.ManageAccounts" Href="/counter">Usuarios</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.Business" Href="/">Proveedores</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.Category" Href="/">Categorias</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.Store" Href="/">Productos</MudNavLink>
+    </MudNavGroup>
+</MudNavMenu>

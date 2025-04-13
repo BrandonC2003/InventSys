@@ -1,0 +1,38 @@
+﻿@rendermode InteractiveServer
+<MudThemeProvider @bind-IsDarkMode="@isDarkMode" Theme="theme" />
+<MudIconButton Icon="@icon" OnClick="ChangeTheme" />
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    private MudTheme theme = new();
+    private bool isDarkMode;
+    private string icon = @Icons.Material.Filled.DarkMode;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Recuperar el estado del tema desde el Local Storage
+            var storedTheme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "isDarkMode");
+            if (!string.IsNullOrEmpty(storedTheme) && bool.TryParse(storedTheme, out var parsedTheme))
+            {
+                isDarkMode = parsedTheme;
+                icon = isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode;
+            }
+
+            StateHasChanged(); // Forzar una nueva renderización para reflejar los cambios
+        }
+    }
+
+    private async Task ChangeTheme()
+    {
+        isDarkMode = !isDarkMode;
+
+        // Actualizar el ícono según el tema seleccionado
+        icon = isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode;
+
+        // Guardar el estado del tema en el Local Storage
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "isDarkMode", isDarkMode.ToString().ToLower());
+    }
+
+}

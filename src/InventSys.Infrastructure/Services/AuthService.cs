@@ -2,7 +2,6 @@
 using InventSys.Infrastructure.Data.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -37,7 +36,7 @@ namespace InventSys.Infrastructure.Services
                 new(ClaimTypes.Name, usuario.UserName),
                 new(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
                 new("FullName", $"{usuario.Nombre} {usuario.Apellido}"),
-                new(ClaimTypes.Role, usuario.IdRol.ToString()) // Asumiendo que IdRol representa el rol
+                new(ClaimTypes.Role, usuario.IdRolNavigation.Rol)
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, "CustomAuth");

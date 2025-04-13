@@ -22,8 +22,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.Cookie.Name = "MyAppAuthCookie";
         options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/AccessDenied"; // Cambiado para consistencia
-        options.ExpireTimeSpan = TimeSpan.FromHours(2);
+        options.AccessDeniedPath = "/Account/AccessDenied"; 
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     });
 
 builder.Services.AddAuthorization();
@@ -37,7 +37,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>
 builder.Services.AddScoped<UsuarioUseCase>();
 
 // Configuración de Blazor y Razor Pages
-builder.Services.AddRazorPages(); // Esto es CRUCIAL para páginas Razor
+builder.Services.AddRazorPages(); 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -67,7 +67,7 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 // Configuración de endpoints
-app.MapRazorPages(); // Mapeo de páginas Razor (DEBE estar antes de MapBlazorHub)
+app.MapRazorPages();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
