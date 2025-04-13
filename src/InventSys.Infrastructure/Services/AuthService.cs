@@ -25,6 +25,7 @@ namespace InventSys.Infrastructure.Services
         {
             // Validar las credenciales del usuario
             var usuario = await _context.Usuarios
+            .Include(u => u.IdRolNavigation)
             .FirstOrDefaultAsync(u => u.UserName == userName && u.Password == password);
 
             if (usuario == null || !usuario.Activo)

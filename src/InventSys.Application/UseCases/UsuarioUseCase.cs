@@ -21,7 +21,6 @@ namespace InventSys.Application.UseCases
         public async Task<bool> IniciarSesionAsync(LogInDto logInDto)
         {
             string encryptedPassword = await _encryptService.EncryptAsync(logInDto.Password);
-
             return await _authService.IniciarSesionAsync(logInDto.UserName, encryptedPassword);
         }
 
@@ -39,6 +38,7 @@ namespace InventSys.Application.UseCases
         public async Task<bool> CerrarSesionAsync()
         {
             int userId = await GetUserIdAsync();
+            await CambiarEstadoAsync(userId, UserStatus.FueraSistema);
             return await _authService.CerrarSesionAsync(userId);
         }
 

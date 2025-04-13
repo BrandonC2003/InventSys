@@ -1,5 +1,6 @@
 using InventSys.Application.DTOs;
 using InventSys.Application.UseCases;
+using InventSys.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -33,7 +34,12 @@ namespace InventSys.Pages.Account
 
             try
             {
-                if (!await _usuarioUseCase.IniciarSesionAsync(Input))
+                if (await _usuarioUseCase.IniciarSesionAsync(Input))
+                {
+                    int currentUserId = await _usuarioUseCase.GetUserIdAsync();
+                    await _usuarioUseCase.CambiarEstadoAsync(currentUserId,UserStatus.Conectado);
+                }
+                else
                 {
                     ErrorMessage = "Las credenciales son incorrectas";
                     return Page();
