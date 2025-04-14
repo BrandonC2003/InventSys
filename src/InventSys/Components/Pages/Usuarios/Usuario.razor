@@ -1,0 +1,124 @@
+﻿@page "/Usuario"
+@attribute [Authorize(Roles = "Administrador")]
+
+@inject IDialogService DialogService
+@inject UsuarioUseCase usuarioUseCase
+@inject RolCatalogoUseCase rolCatalogoUseCase
+
+<MudText Typo="Typo.h4" Class="mb-4">Usuarios</MudText>
+
+<MudTable Items="@Usuarios" Hover="true" Filter="new Func<Usuarios,bool>(FilterFunc1)" SortLabel="Ordenar Por">
+    <ToolBarContent>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AbrirNuevoUsuario">
+            <MudIcon Icon="@Icons.Material.Filled.Add" /> Nuevo Usuario
+        </MudButton>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Usuarios, object>(x=>x.Nombre)">
+                UserName
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>Rol</MudTh>
+        <MudTh>Nombre</MudTh>
+        <MudTh>Apellido</MudTh>
+        <MudTh>Correo</MudTh>
+        <MudTh>Activo</MudTh>
+        <MudTh>Acciones</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>
+            <MudTextField @bind-Value="@context.UserName" Immediate="true" />
+        </MudTd>
+        <MudTd>
+            <MudSelect T="int" @bind-Value="context.IdRol" Dense="true">
+                @if (roles is null)
+                {
+                    <MudSelectItem T="int" Disabled="true">Cargando...</MudSelectItem>
+                }
+                else
+                {
+                    @foreach (var rol in roles)
+                    {
+                        <MudSelectItem T="int" Value="@rol.IdRol">@rol.Rol</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+        </MudTd>
+        <MudTd>
+            <MudTextField @bind-Value="@context.Nombre" Immediate="true" />
+        </MudTd>
+        <MudTd>
+            <MudTextField @bind-Value="@context.Apellido" Immediate="true" />
+        </MudTd>
+        <MudTd>
+            <MudTextField @bind-Value="@context.CorreoElectronico" Immediate="true" />
+        </MudTd>
+        <MudTd>
+            <MudTextField @bind-Value="@context.Activo" Immediate="true" />
+        </MudTd>
+        <MudTd>
+            <MudButton Color="Color.Error" Variant="Variant.Text" OnClick="@(() => EliminarUsuario(context))">
+                <MudIcon Icon="@Icons.Material.Filled.Delete" />
+            </MudButton>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100}"
+                       RowsPerPageString="Filas por página:"
+                       HorizontalAlignment="HorizontalAlignment.Center"
+                       HidePageNumber="true" />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private List<Usuarios> usuariosInternos = new();
+
+    private string searchString1 = "";
+
+    private List<RolCatalogo>? roles;
+
+    //Carga de los usuarios desde la base de datos
+    protected override async Task OnInitializedAsync()
+    {
+        usuariosInternos = await usuarioUseCase.ObtenerUsuariosAsync();
+        roles = await rolCatalogoUseCase.ObtenerRolesAsync();
+    }
+
+    // Esto es lo que se mostrará en la tabla
+    private IEnumerable<Usuarios> Usuarios => usuariosInternos;
+
+    private async Task AbrirNuevoUsuario()
+    {
+        var result = await DialogService.Show<CrearUsuarioDialog>("Nuevo Usuario").Result;
+
+        if (!result.Canceled && result.Data is Usuarios nuevo)
+        {
+            usuariosInternos.Add(nuevo);
+        }
+    }
+
+    private void EliminarUsuario(Usuarios usuario)
+    {
+        usuariosInternos.Remove(usuario);
+    }
+
+    private bool FilterFunc1(Usuarios element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Usuarios element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.UserName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Nombre.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Apellido.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.CorreoElectronico.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}

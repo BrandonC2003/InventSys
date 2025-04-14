@@ -34,10 +34,10 @@ namespace InventSys.Pages.Account
 
             try
             {
-                if (await _usuarioUseCase.IniciarSesionAsync(Input))
+                int userId = await _usuarioUseCase.IniciarSesionAsync(Input);
+                if (userId >= 0)
                 {
-                    int currentUserId = await _usuarioUseCase.GetUserIdAsync();
-                    await _usuarioUseCase.CambiarEstadoAsync(currentUserId,UserStatus.Conectado);
+                    await _usuarioUseCase.CambiarEstadoAsync(userId, UserStatus.Conectado);
                 }
                 else
                 {

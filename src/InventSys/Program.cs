@@ -36,6 +36,7 @@ builder.Services.AddScoped<IEncryptService, EncryptService>();
 builder.Services.AddScoped<IRolCatalogoService, RolCatalogoService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<UsuarioUseCase>();
+builder.Services.AddScoped<RolCatalogoUseCase>();
 
 // Configuración de Blazor y Razor Pages
 builder.Services.AddRazorPages(); 

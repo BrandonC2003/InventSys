@@ -18,7 +18,7 @@ namespace InventSys.Application.UseCases
         private readonly IEncryptService _encryptService = encryptService;
         private readonly AuthenticationStateProvider _authProvider = authProvider;
 
-        public async Task<bool> IniciarSesionAsync(LogInDto logInDto)
+        public async Task<int> IniciarSesionAsync(LogInDto logInDto)
         {
             string encryptedPassword = await _encryptService.EncryptAsync(logInDto.Password);
             return await _authService.IniciarSesionAsync(logInDto.UserName, encryptedPassword);

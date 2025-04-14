@@ -21,7 +21,7 @@ namespace InventSys.Infrastructure.Services
             return true;
         }
 
-        public async Task<bool> IniciarSesionAsync(string userName, string password)
+        public async Task<int> IniciarSesionAsync(string userName, string password)
         {
             // Validar las credenciales del usuario
             var usuario = await _context.Usuarios
@@ -29,7 +29,7 @@ namespace InventSys.Infrastructure.Services
             .FirstOrDefaultAsync(u => u.UserName == userName && u.Password == password);
 
             if (usuario == null || !usuario.Activo)
-                return false;
+                return -1;
 
             // Crear los claims para el usuario autenticado
             var claims = new List<Claim>
@@ -55,7 +55,7 @@ namespace InventSys.Infrastructure.Services
             claimsPrincipal,
             authProperties);
 
-            return true;
+            return usuario.IdUsuario;
         }
     }
 }

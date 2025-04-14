@@ -3,7 +3,7 @@ using InventSys.Domain.Interfaces;
 
 namespace InventSys.Application.UseCases
 {
-    class RolCatalogoUseCase(IRolCatalogoService rolCatalogoService)
+    public class RolCatalogoUseCase(IRolCatalogoService rolCatalogoService)
     {
         private readonly IRolCatalogoService _rolCatalogoService = rolCatalogoService;
 
