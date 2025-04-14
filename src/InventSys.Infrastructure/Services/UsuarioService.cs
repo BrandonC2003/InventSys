@@ -110,8 +110,7 @@ namespace InventSys.Infrastructure.Services
                     Estado = u.Estado,
                     Activo = u.Activo
                 }
-                ).ToListAsync() ??
-                throw new KeyNotFoundException("Usuario no encontrado");
+                ).ToListAsync();
 
             return usuarios;
         }
