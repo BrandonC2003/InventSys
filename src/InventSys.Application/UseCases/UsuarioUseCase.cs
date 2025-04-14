@@ -117,5 +117,19 @@ namespace InventSys.Application.UseCases
             var encryptedPassword = await _encryptService.EncryptAsync(usuarioDto.NuevoPassword);
             await _usuarioService.CambiarClaveAsync(userId, encryptedPassword);
         }
+
+        public bool IsInRol(string? rol)
+        {
+            var authState = authProvider.GetAuthenticationStateAsync().Result;
+            var user = authState.User;
+            string? rolUsuario = string.Empty;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                rolUsuario = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+            }
+
+            return rolUsuario == rol;
+        }
     }
 }
