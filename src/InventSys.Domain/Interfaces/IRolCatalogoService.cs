@@ -5,5 +5,7 @@ namespace InventSys.Domain.Interfaces
     public interface IRolCatalogoService
     {
         Task<List<RolCatalogo>> ObtenerRolesAsync();
+
+        Task<RolCatalogo> ObtenerRol(int idRol);
     }
 }

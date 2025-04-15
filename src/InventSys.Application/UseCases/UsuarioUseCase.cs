@@ -52,16 +52,29 @@ namespace InventSys.Application.UseCases
             return await _usuarioService.ObtenerUsuarioAsync(userId);
         }
 
-        public async Task CrearUsuarioAsync(UsuarioDto usuarioDto)
+        public async Task<Usuarios> CrearUsuarioAsync(CrearUsuarioDto usuarioDto)
         {
-            if (usuarioDto.NuevoPassword != usuarioDto.NuevoPassword2)
+            if (usuarioDto.Password != usuarioDto.PasswordConfirmation)
             {
                 throw UserException.PasswordDiferentes();
             }
+
+            //Valida que el nombre de usuario no exista en la base de datos
+            try
+            {
+                await _usuarioService.ObtenerUsuarioAsync(usuarioDto.UserName);
+                throw UserException.NewException("El nombre de usuario ya está en uso.");
+            }
+            catch (KeyNotFoundException)
+            {
+
+                //si marca excepción el nombre de usuario aún no existe en la base de datos
+            }
+
             var usuario = new Usuarios
             {
                 UserName = usuarioDto.UserName,
-                Password = await _encryptService.EncryptAsync(usuarioDto.NuevoPassword),
+                Password = await _encryptService.EncryptAsync(usuarioDto.PasswordConfirmation),
                 Nombre = usuarioDto.Nombre,
                 Apellido = usuarioDto.Apellido,
                 CorreoElectronico = usuarioDto.Correo,
@@ -69,20 +82,14 @@ namespace InventSys.Application.UseCases
                 Estado = 0,
                 Activo = true
             };
+
             await _usuarioService.CrearUsuarioAsync(usuario);
+
+            return await _usuarioService.ObtenerUsuarioAsync(usuario.UserName);
         }
 
-        public async Task ActualizarUsuarioAsync(int userId, UsuarioDto usuarioDto)
+        public async Task ActualizarUsuarioAsync(int userId, Usuarios usuario)
         {
-
-            var usuario = new Usuarios
-            {
-                UserName = usuarioDto.UserName,
-                Nombre = usuarioDto.Nombre,
-                Apellido = usuarioDto.Apellido,
-                CorreoElectronico = usuarioDto.Correo,
-                Activo = usuarioDto.Activo
-            };
 
             await _usuarioService.ActualizarUsuarioAsync(userId, usuario);
         }
@@ -92,29 +99,27 @@ namespace InventSys.Application.UseCases
             await _usuarioService.CambiarEstadoAsync(userId, userStatus);
         }
 
-        public async Task CambiarClaveAsync(UsuarioDto usuarioDto, int userId)
+        public async Task CambiarClaveAsync(CambiarPasswordDto passwordDto, int userId)
         {
 
             var usuario = await _usuarioService.ObtenerUsuarioAsync(userId);
 
-            if (usuario == null || usuario.Password != await _encryptService.EncryptAsync(usuarioDto.Password))
+            if (usuario == null || usuario.Password != await _encryptService.EncryptAsync(passwordDto.CurrentPassword))
             {
                 throw UserException.ClaveIncorrecta();
             }
 
-            if (usuarioDto.NuevoPassword != usuarioDto.NuevoPassword2)
+            if (passwordDto.NuevoPassword != passwordDto.NuevoPasswordRepeat)
             {
                 throw UserException.PasswordDiferentes();
             }
 
-            if (usuario.Password == usuarioDto.NuevoPassword)
+            if (usuario.Password == passwordDto.NuevoPassword)
             {
                 throw UserException.PasswordRepetido();
             }
 
-            usuarioDto.NuevoPassword = await _encryptService.EncryptAsync(usuarioDto.NuevoPassword);
-
-            var encryptedPassword = await _encryptService.EncryptAsync(usuarioDto.NuevoPassword);
+            var encryptedPassword = await _encryptService.EncryptAsync(passwordDto.NuevoPassword);
             await _usuarioService.CambiarClaveAsync(userId, encryptedPassword);
         }
 

@@ -7,6 +7,7 @@ namespace InventSys.Domain.Interfaces
     {
         Task<List<Usuarios>> ObtenerUsuariosAsync();
         Task<Usuarios> ObtenerUsuarioAsync(int userId);
+        Task<Usuarios> ObtenerUsuarioAsync(string userName);
         Task CrearUsuarioAsync(Usuarios usuario);
         Task ActualizarUsuarioAsync(int userId, Usuarios usuario);
         Task CambiarEstadoAsync(int userId, UserStatus userStatus);

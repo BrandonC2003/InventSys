@@ -12,5 +12,10 @@ namespace InventSys.Application.UseCases
         {
             return _rolCatalogoService.ObtenerRolesAsync();
         }
+
+        public Task<RolCatalogo> ObtenerRol(int idRol)
+        {
+            return _rolCatalogoService.ObtenerRol(idRol);
+        }
     }
 }

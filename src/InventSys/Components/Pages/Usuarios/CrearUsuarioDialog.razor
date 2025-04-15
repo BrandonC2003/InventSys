@@ -1,20 +1,92 @@
 ﻿<MudDialog>
     <TitleContent>
-        Dialog Title
+        <MudText Typo="Typo.h5">Nuevo usuario</MudText>
     </TitleContent>
     <DialogContent>
-        Dialog Content
+        <MudCard>
+            <MudCardContent>
+                <EditForm Model="@crearUsuarioDto" OnValidSubmit="Submit" id="createUserForm">
+                    <DataAnnotationsValidator />
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+                    }
+                    <MudTextField Label="Nombre" @bind-Value="crearUsuarioDto.Nombre" For="@(() => crearUsuarioDto.Nombre)" Class="mt-3" />
+                    <MudTextField Label="Apellido" @bind-Value="crearUsuarioDto.Apellido" For="@(() => crearUsuarioDto.Apellido)" Class="mt-3" />
+                    <MudTextField Label="Correo" @bind-Value="crearUsuarioDto.Correo" For="@(() => crearUsuarioDto.Correo)" Class="mt-3" />
+                    <MudTextField Label="UserName" @bind-Value="crearUsuarioDto.UserName" For="@(() => crearUsuarioDto.UserName)" Class="mt-3" />
+
+                    <MudSelect Label="Rol" T="int" @bind-Value="crearUsuarioDto.IdRol" Dense="true" For="@(() => crearUsuarioDto.IdRol)" Class="mt-3">
+                        @if (roles is null)
+                        {
+                            <MudSelectItem T="int" Disabled="true">Cargando...</MudSelectItem>
+                        }
+                        else
+                        {
+                            <MudSelectItem Value="0" Disabled="true">Selecciona</MudSelectItem>
+                            @foreach (var rol in roles)
+                            {
+                                <MudSelectItem T="int" Value="@rol.IdRol">@rol.Rol</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Contraseña" Class="mt-3" 
+                    @bind-Value="crearUsuarioDto.Password" For="@(() => crearUsuarioDto.Password)" InputType="InputType.Password" />
+
+                    <MudTextField Label="Contraseña" HelperText="Repite la contraseña" Class="mt-3"
+                    @bind-Value="crearUsuarioDto.PasswordConfirmation" For="@(() => crearUsuarioDto.PasswordConfirmation)" InputType="InputType.Password" />
+
+                </EditForm>
+            </MudCardContent>
+        </MudCard>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Close" OnClick="Cancel">Cancelar</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" ButtonType="ButtonType.Submit" Form="createUserForm">Crear usuario</MudButton>
     </DialogActions>
 </MudDialog>
 @code {
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
 
-    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    [Inject]
+    private UsuarioUseCase UsuarioUseCase { get; set; }
+    [Inject]
+    private RolCatalogoUseCase RolCatalogoUseCase { get; set; }
+
+    private List<RolCatalogo> roles = new();
+    private bool success;
+
+    private CrearUsuarioDto crearUsuarioDto = new();
+
+    private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        roles = await RolCatalogoUseCase.ObtenerRolesAsync();
+    }
+
+
+    private async Task Submit()
+    {
+        errorMessage = string.Empty;
+        try
+        {
+            var usuarioCreado = await UsuarioUseCase.CrearUsuarioAsync(crearUsuarioDto);
+            MudDialog.Close(DialogResult.Ok(usuarioCreado));
+        }
+        catch (UserException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            errorMessage = "Ocurrió un error al crear el usuario";
+        }
+
+    }
 
     private void Cancel() => MudDialog.Cancel();
+
 }

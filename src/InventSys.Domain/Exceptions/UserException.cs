@@ -10,5 +10,6 @@ namespace InventSys.Domain.Exceptions
         public static UserException ClaveIncorrecta() => new("La contraseña actual es incorrecta.");
 
         public static UserException PasswordRepetido() => new("La nueva contraseña no puede ser igual a la actual");
+        public static UserException NewException(string message) => new(message);
     }
 }

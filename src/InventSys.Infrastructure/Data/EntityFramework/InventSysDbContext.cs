@@ -174,7 +174,6 @@ public partial class InventSysDbContext : DbContext
         {
             entity.HasKey(e => e.IdUsuario);
 
-            entity.Property(e => e.IdUsuario).ValueGeneratedNever();
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.Property(e => e.Apellido).HasMaxLength(50);
             entity.Property(e => e.CorreoElectronico).HasMaxLength(100);

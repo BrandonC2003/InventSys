@@ -4,10 +4,12 @@
 @inject IDialogService DialogService
 @inject UsuarioUseCase usuarioUseCase
 @inject RolCatalogoUseCase rolCatalogoUseCase
+@inject ISnackbar Snackbar
 
 <MudText Typo="Typo.h4" Class="mb-4">Usuarios</MudText>
 
-<MudTable Items="@Usuarios" Hover="true" Filter="new Func<Usuarios,bool>(FilterFunc1)" SortLabel="Ordenar Por">
+<MudTable Items="@Usuarios" Hover="true" Filter="new Func<Usuarios,bool>(FilterFunc1)" SortLabel="Ordenar Por"
+          RowEditCommit="ActualizarUsuario" RowEditPreview="RespaldarUsuario">
     <ToolBarContent>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AbrirNuevoUsuario">
             <MudIcon Icon="@Icons.Material.Filled.Add" /> Nuevo Usuario
@@ -26,13 +28,37 @@
         <MudTh>Apellido</MudTh>
         <MudTh>Correo</MudTh>
         <MudTh>Activo</MudTh>
-        <MudTh>Acciones</MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd>
-            <MudTextField @bind-Value="@context.UserName" Immediate="true" />
+            @context.UserName
         </MudTd>
         <MudTd>
+            @roles.Find(x => x.IdRol == @context.IdRol)?.Rol
+        </MudTd>
+        <MudTd>
+            @context.Nombre
+        </MudTd>
+        <MudTd>
+            @context.Apellido
+        </MudTd>
+        <MudTd>
+            @context.CorreoElectronico
+        </MudTd>
+        <MudTd>
+            @if (@context.Activo)
+            {
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success"></MudIcon>
+            }
+            else
+            {
+                <MudIcon Icon="@Icons.Material.Filled.DoNotDisturbAlt" Color="Color.Error"></MudIcon>
+            }
+        </MudTd>
+    </RowTemplate>
+    <RowEditingTemplate>
+        <MudTd DataLabel="UserName">@context.UserName</MudTd>
+        <MudTd DataLabel="Rol">
             <MudSelect T="int" @bind-Value="context.IdRol" Dense="true">
                 @if (roles is null)
                 {
@@ -47,29 +73,24 @@
                 }
             </MudSelect>
         </MudTd>
-        <MudTd>
-            <MudTextField @bind-Value="@context.Nombre" Immediate="true" />
+        <MudTd DataLabel="Nombre">
+            <MudTextField @bind-Value="context.Nombre" Required />
         </MudTd>
-        <MudTd>
-            <MudTextField @bind-Value="@context.Apellido" Immediate="true" />
+        <MudTd DataLabel="Apellido">
+            <MudTextField @bind-Value="context.Apellido" Required />
         </MudTd>
-        <MudTd>
-            <MudTextField @bind-Value="@context.CorreoElectronico" Immediate="true" />
+        <MudTd DataLabel="Correo">
+            <MudTextField @bind-Value="context.CorreoElectronico" Required />
         </MudTd>
-        <MudTd>
-            <MudTextField @bind-Value="@context.Activo" Immediate="true" />
+        <MudTd DataLabel="Activo">
+            <MudSwitch @bind-Value="context.Activo" Color="Color.Success" UncheckedColor="Color.Error" />
         </MudTd>
-        <MudTd>
-            <MudButton Color="Color.Error" Variant="Variant.Text" OnClick="@(() => EliminarUsuario(context))">
-                <MudIcon Icon="@Icons.Material.Filled.Delete" />
-            </MudButton>
-        </MudTd>
-    </RowTemplate>
+    </RowEditingTemplate>
     <PagerContent>
         <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100}"
-                       RowsPerPageString="Filas por página:"
-                       HorizontalAlignment="HorizontalAlignment.Center"
-                       HidePageNumber="true" />
+        RowsPerPageString="Filas por página:"
+        HorizontalAlignment="HorizontalAlignment.Center"
+        HidePageNumber="true" />
     </PagerContent>
 </MudTable>
 
@@ -79,6 +100,10 @@
     private string searchString1 = "";
 
     private List<RolCatalogo>? roles;
+
+    private Usuarios usuarioBackup = new();
+
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 
     //Carga de los usuarios desde la base de datos
     protected override async Task OnInitializedAsync()
@@ -92,12 +117,60 @@
 
     private async Task AbrirNuevoUsuario()
     {
-        var result = await DialogService.Show<CrearUsuarioDialog>("Nuevo Usuario").Result;
+        var dialog = await DialogService.ShowAsync<CrearUsuarioDialog>("Nuevo Usuario", _maxWidth);
+        var result = await dialog.Result;
 
         if (!result.Canceled && result.Data is Usuarios nuevo)
         {
             usuariosInternos.Add(nuevo);
         }
+    }
+
+    private void RespaldarUsuario(object usuario)
+    {
+        if(usuario is Usuarios usuarioRespaldo)
+        {
+            usuarioBackup = new Usuarios()
+            {
+                IdRol = usuarioRespaldo.IdRol,
+                Nombre = usuarioRespaldo.Nombre,
+                Apellido = usuarioRespaldo.Apellido,
+                CorreoElectronico = usuarioRespaldo.CorreoElectronico,
+                Activo = usuarioRespaldo.Activo,
+
+            };
+        }
+    }
+
+    private async void ActualizarUsuario(object usuario)
+    {
+        if (usuario is Usuarios usuarioActualizar)
+        {
+            if (UsuarioNecesitaActualizarse(usuarioActualizar))
+            {
+                try
+                {
+                    await usuarioUseCase.ActualizarUsuarioAsync(usuarioActualizar.IdUsuario, usuarioActualizar);
+                    Snackbar.Add($"El usuario {usuarioActualizar.UserName} fue actualizado exitosamente", Severity.Success);
+                }
+                catch (Exception)
+                {
+                    Snackbar.Add($"Ocurrió un error al actualizar el usuario {usuarioActualizar.UserName}", Severity.Error);
+                }
+
+            }
+        }
+    }
+
+    private bool UsuarioNecesitaActualizarse(Usuarios usuarioActualizar)
+    {
+        var necesitaActualizarse = usuarioBackup.IdRol != usuarioActualizar.IdRol ||
+                                    usuarioBackup.Nombre != usuarioActualizar.Nombre ||
+                                    usuarioBackup.Apellido != usuarioActualizar.Apellido ||
+                                    usuarioBackup.CorreoElectronico != usuarioActualizar.CorreoElectronico ||
+                                    usuarioBackup.Activo != usuarioActualizar.Activo;
+
+        return necesitaActualizarse;
     }
 
     private void EliminarUsuario(Usuarios usuario)

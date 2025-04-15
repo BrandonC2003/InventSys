@@ -94,6 +94,30 @@ namespace InventSys.Infrastructure.Services
             return usuario;
         }
 
+        public async Task<Usuarios> ObtenerUsuarioAsync(string userName)
+        {
+            var usuario = await(
+                from u in _context.Usuarios
+                where u.UserName == userName
+                select new Usuarios
+                {
+                    IdUsuario = u.IdUsuario,
+                    IdRol = u.IdRol,
+                    UserName = u.UserName,
+                    Password = u.Password,
+                    Nombre = u.Nombre,
+                    Apellido = u.Apellido,
+                    CorreoElectronico = u.CorreoElectronico,
+                    Estado = u.Estado,
+                    Activo = u.Activo
+                }
+                ).FirstOrDefaultAsync() ??
+                throw new KeyNotFoundException("Usuario no encontrado");
+
+
+            return usuario;
+        }
+
         public async Task<List<Usuarios>> ObtenerUsuariosAsync()
         {
             var usuarios = await (
