@@ -43,6 +43,7 @@ builder.Services.AddScoped<UsuarioUseCase>();
 builder.Services.AddScoped<ProveedorUseCase>();
 builder.Services.AddScoped<CategoriaUseCase>();
 builder.Services.AddScoped<RolCatalogoUseCase>();
+builder.Services.AddScoped<AuditoriaProductoUseCase>();
 
 // Configuración de Blazor y Razor Pages
 builder.Services.AddRazorPages(); 
