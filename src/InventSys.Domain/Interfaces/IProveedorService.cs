@@ -6,6 +6,7 @@ namespace InventSys.Domain.Interfaces
     {
         Task<List<Proveedor>> ObtenerProveedores();
         Task<Proveedor> ObtenerProveedorPorId(int id);
+        Task<Proveedor> ObtenerProveedorPorNombre(string nombreProveedor);
         Task CrearProveedor(Proveedor proveedor);
         Task ActualizarProveedor(int idProveedor, Proveedor proveedor);
         Task EliminarProveedor(int id);

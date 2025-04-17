@@ -81,5 +81,20 @@ namespace InventSys.Infrastructure.Services
 
             return proveedor;
         }
+
+        public async Task<Proveedor> ObtenerProveedorPorNombre(string nombreProveedor)
+        {
+            var proveedor = await _context.Proveedores
+                            .Where(p => p.NombreProveedor == nombreProveedor)
+                            .Select(p => new Proveedor
+                            {
+                                IdProveedor = p.IdProveedor,
+                                NombreProveedor = p.NombreProveedor,
+                                CorreoElectronico = p.CorreoElectronico ?? string.Empty,
+                                Telefono = p.Telefono
+                            }).FirstOrDefaultAsync() ?? throw new KeyNotFoundException("No se encontró un proveedor con ese nombre");
+
+            return proveedor;
+        }
     }
 }
