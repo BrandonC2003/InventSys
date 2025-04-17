@@ -60,12 +60,12 @@ namespace InventSys.Application.UseCases
             {
                 //Valida que el nombre no se repita en otro proveedor que no sea el que se está actualizando
                 var proveedorEncontrado = await _proveedorService.ObtenerProveedorPorNombre(proveedor.NombreProveedor);
-                if (proveedorEncontrado.IdProveedor == idProveedor )
+                if (proveedorEncontrado.IdProveedor != idProveedor )
                     throw new CustomExeption("Ya existe un proveedor con ese nombre");
             }
             catch (KeyNotFoundException)
             {
-                //si el proveedor no existe procedemos a realizar el guardado
+                //si el proveedor no existe procedemos a realizar la actualización
             }
 
             try

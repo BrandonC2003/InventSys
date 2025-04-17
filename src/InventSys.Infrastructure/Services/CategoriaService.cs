@@ -64,6 +64,20 @@ namespace InventSys.Infrastructure.Services
             return categoria;
         }
 
+        public async Task<Categoria> ObtenerCategoriaPorNombre(string nombreCategoria)
+        {
+            var categoria = await _context.Categorias
+                .Where(c => c.NombreCategoria == nombreCategoria)
+                .Select(c => new Categoria
+                {
+                    IdCategoria = c.IdCategoria,
+                    NombreCategoria = c.NombreCategoria,
+                    Descripcion = c.Descripcion
+                }).FirstOrDefaultAsync() ?? throw new KeyNotFoundException("No existe una categoría con ese nombre");
+
+            return categoria;
+        }
+
         public async Task<List<Categoria>> ObtenerCategorias()
         {
             var categorias = await _context.Categorias
