@@ -1,0 +1,133 @@
+﻿using InventSys.Domain.Entities;
+using InventSys.Domain.Exceptions;
+using InventSys.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using EF = InventSys.Infrastructure.Data.EntityFramework;
+
+namespace InventSys.Infrastructure.Services
+{
+    public class ProductoService(EF.InventSysDbContext context) : IProductoService
+    {
+        private readonly EF.InventSysDbContext _context = context;
+
+        public async Task ActualizarProducto(int idProducto, Producto producto)
+        {
+            var productoExistente = await _context.Productos.FindAsync(idProducto) ??
+                throw new KeyNotFoundException("No se encontró un producto con ese id");
+            productoExistente.IdCategoria = producto.IdCategoria;
+            productoExistente.IdProveedor = producto.IdProveedor;
+            productoExistente.NombreProducto = producto.NombreProducto;
+            productoExistente.Descripcion = producto.Descripcion;
+            productoExistente.PrecioCompra = producto.PrecioCompra;
+            productoExistente.PrecioVenta = producto.PrecioVenta;
+            productoExistente.Stok = producto.Stok;
+            productoExistente.StokBajo = producto.StokBajo;
+            productoExistente.MensajeAlerta = producto.MensajeAlerta;
+
+            _context.Productos.Update(productoExistente);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CrearProducto(Producto producto)
+        {
+            var nuevoProducto = new EF.Producto()
+            {
+                IdCategoria = producto.IdCategoria,
+                IdProveedor = producto.IdProveedor,
+                NombreProducto = producto.NombreProducto,
+                Descripcion = producto.Descripcion,
+                PrecioCompra = producto.PrecioCompra,
+                PrecioVenta = producto.PrecioVenta,
+                Stok = producto.Stok,
+                StokBajo = producto.StokBajo,
+                MensajeAlerta = producto.MensajeAlerta,
+            };
+
+            _context.Productos.Add(nuevoProducto);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarProducto(int id)
+        {
+            var productoEliminar = await _context.Productos.FindAsync(id) ??
+                throw new KeyNotFoundException("No se encontró un producto con ese id");
+
+            _context.Productos.Remove(productoEliminar);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+
+                throw new DeleteException("El producto no se puede eliminar por que hay otros registros que dependen de él");
+            }
+        }
+
+        public async Task<Producto> ObtenerProductoPorId(int id)
+        {
+            var productos = await _context.Productos
+                .Include(p => p.IdProveedorNavigation)
+                .Include(p => p.IdCategoriaNavigation)
+                .Where(p => p.IdProducto == id)
+                .Select(p => new Producto
+                {
+                    IdProducto = p.IdProducto,
+                    IdCategoria = p.IdCategoria,
+                    IdProveedor = p.IdProveedor,
+                    NombreProducto = p.NombreProducto,
+                    Descripcion = p.Descripcion,
+                    PrecioCompra = p.PrecioCompra,
+                    PrecioVenta = p.PrecioVenta,
+                    Stok = p.Stok,
+                    StokBajo = p.StokBajo,
+                    MensajeAlerta = p.MensajeAlerta,
+                    IdCategoriaNavigation = new Categoria
+                    {
+                        IdCategoria = p.IdCategoriaNavigation.IdCategoria,
+                        NombreCategoria = p.IdCategoriaNavigation.NombreCategoria
+                    },
+                    IdProveedorNavigation = new Proveedor
+                    {
+                        IdProveedor = p.IdProveedorNavigation.IdProveedor,
+                        NombreProveedor = p.IdProveedorNavigation.NombreProveedor
+                    }
+                }).FirstOrDefaultAsync() ?? throw new KeyNotFoundException("No se encontró un producto con ese id");
+
+            return productos;
+        }
+
+        public async Task<List<Producto>> ObtenerProductos()
+        {
+            var productos = await _context.Productos
+                .Include(p => p.IdProveedorNavigation)
+                .Include(p => p.IdCategoriaNavigation)
+                .Select(p => new Producto
+                {
+                    IdProducto = p.IdProducto,
+                    IdCategoria = p.IdCategoria,
+                    IdProveedor = p.IdProveedor,
+                    NombreProducto = p.NombreProducto,
+                    Descripcion = p.Descripcion,
+                    PrecioCompra = p.PrecioCompra,
+                    PrecioVenta = p.PrecioVenta,
+                    Stok = p.Stok,
+                    StokBajo = p.StokBajo,
+                    MensajeAlerta = p.MensajeAlerta,
+                    IdCategoriaNavigation = new Categoria
+                    {
+                        IdCategoria = p.IdCategoriaNavigation.IdCategoria,
+                        NombreCategoria = p.IdCategoriaNavigation.NombreCategoria
+                    },
+                    IdProveedorNavigation = new Proveedor
+                    {
+                        IdProveedor = p.IdProveedorNavigation.IdProveedor,
+                        NombreProveedor = p.IdProveedorNavigation.NombreProveedor
+                    }
+                }).ToListAsync();
+
+            return productos;
+        }
+    }
+}
