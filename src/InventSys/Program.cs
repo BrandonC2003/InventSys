@@ -38,6 +38,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>
 builder.Services.AddScoped<IProveedorService, ProveedorService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<IAuditoriaProductoService, AuditoriaProductoService>();
 builder.Services.AddScoped<UsuarioUseCase>();
 builder.Services.AddScoped<ProveedorUseCase>();
 builder.Services.AddScoped<CategoriaUseCase>();
