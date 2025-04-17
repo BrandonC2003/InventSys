@@ -1,0 +1,16 @@
+﻿@page "/accessDenied"
+@layout Layout.UnauthorizedLayout
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<MudPaper Class="pa-6 d-flex flex-column align-center justify-center" Elevation="3" Style="min-height: 300px; margin-top: 100px;">
+    <MudIcon Icon="@Icons.Material.Filled.Lock" Color="Color.Error" Size="Size.Large" />
+    <MudText Typo="Typo.h4" Class="mt-2 mb-1">Acceso Denegado</MudText>
+    <MudText Typo="Typo.body1" Align="Align.Center">
+        No tienes permisos para acceder a esta página. Si crees que esto es un error, contacta al administrador del sistema.
+    </MudText>
+    <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" Href="/">
+        Volver al Inicio
+    </MudButton>
+</MudPaper>

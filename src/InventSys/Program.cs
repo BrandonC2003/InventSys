@@ -22,7 +22,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.Cookie.Name = "MyAppAuthCookie";
         options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/AccessDenied"; 
+        options.AccessDeniedPath = "/accessDenied"; 
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     });
 
