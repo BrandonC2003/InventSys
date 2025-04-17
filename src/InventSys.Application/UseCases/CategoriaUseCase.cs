@@ -37,7 +37,7 @@ namespace InventSys.Application.UseCases
             }
         }
 
-        public async Task CrearCategoria(Categoria categoria)
+        public async Task<Categoria> CrearCategoria(Categoria categoria)
         {
             try
             {
@@ -49,7 +49,7 @@ namespace InventSys.Application.UseCases
             {
                 //si la categoria no existe procedemos a realizar el guardado
             }
-            await _categoriaService.CrearCategoria(categoria);
+            return await _categoriaService.CrearCategoria(categoria);
         }
 
         public async Task ActualizarCategoria(int idCategoria, Categoria categoria)

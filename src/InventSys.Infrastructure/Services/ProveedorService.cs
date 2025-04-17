@@ -22,7 +22,7 @@ namespace InventSys.Infrastructure.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task CrearProveedor(Proveedor proveedor)
+        public async Task<Proveedor> CrearProveedor(Proveedor proveedor)
         {
             var nuevoProveedor = new Proveedore
             {
@@ -34,6 +34,10 @@ namespace InventSys.Infrastructure.Services
             _context.Proveedores.Add(nuevoProveedor);
 
             await _context.SaveChangesAsync();
+
+            proveedor.IdProveedor = nuevoProveedor.IdProveedor;
+
+            return proveedor;
         }
 
         public async Task EliminarProveedor(int id)

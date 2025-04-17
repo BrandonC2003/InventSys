@@ -28,7 +28,7 @@ namespace InventSys.Infrastructure.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task CrearProducto(Producto producto)
+        public async Task<Producto> CrearProducto(Producto producto)
         {
             var nuevoProducto = new EF.Producto()
             {
@@ -45,6 +45,10 @@ namespace InventSys.Infrastructure.Services
 
             _context.Productos.Add(nuevoProducto);
             await _context.SaveChangesAsync();
+
+            producto.IdProducto = nuevoProducto.IdProducto;
+
+            return producto;
         }
 
         public async Task EliminarProducto(int id)
@@ -94,6 +98,39 @@ namespace InventSys.Infrastructure.Services
                         NombreProveedor = p.IdProveedorNavigation.NombreProveedor
                     }
                 }).FirstOrDefaultAsync() ?? throw new KeyNotFoundException("No se encontró un producto con ese id");
+
+            return productos;
+        }
+
+        public async Task<Producto> ObtenerProductoPorNombre(string nombreProducto)
+        {
+            var productos = await _context.Productos
+                .Include(p => p.IdProveedorNavigation)
+                .Include(p => p.IdCategoriaNavigation)
+                .Where(p => p.NombreProducto == nombreProducto)
+                .Select(p => new Producto
+                {
+                    IdProducto = p.IdProducto,
+                    IdCategoria = p.IdCategoria,
+                    IdProveedor = p.IdProveedor,
+                    NombreProducto = p.NombreProducto,
+                    Descripcion = p.Descripcion,
+                    PrecioCompra = p.PrecioCompra,
+                    PrecioVenta = p.PrecioVenta,
+                    Stok = p.Stok,
+                    StokBajo = p.StokBajo,
+                    MensajeAlerta = p.MensajeAlerta,
+                    IdCategoriaNavigation = new Categoria
+                    {
+                        IdCategoria = p.IdCategoriaNavigation.IdCategoria,
+                        NombreCategoria = p.IdCategoriaNavigation.NombreCategoria
+                    },
+                    IdProveedorNavigation = new Proveedor
+                    {
+                        IdProveedor = p.IdProveedorNavigation.IdProveedor,
+                        NombreProveedor = p.IdProveedorNavigation.NombreProveedor
+                    }
+                }).FirstOrDefaultAsync() ?? throw new KeyNotFoundException("No se encontró un producto con ese nombre");
 
             return productos;
         }

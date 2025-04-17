@@ -38,7 +38,7 @@ namespace InventSys.Application.UseCases
             }
         }
 
-        public async Task CrearProveedor(Proveedor proveedor)
+        public async Task<Proveedor> CrearProveedor(Proveedor proveedor)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace InventSys.Application.UseCases
                 //si el proveedor no existe procedemos a realizar el guardado
             }
 
-            await _proveedorService.CrearProveedor(proveedor);
+            return await _proveedorService.CrearProveedor(proveedor);
         }
 
         public async Task ActualizarProveedor(int idProveedor, Proveedor proveedor)

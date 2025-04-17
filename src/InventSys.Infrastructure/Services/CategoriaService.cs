@@ -21,7 +21,7 @@ namespace InventSys.Infrastructure.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task CrearCategoria(Categoria categoria)
+        public async Task<Categoria> CrearCategoria(Categoria categoria)
         {
             var nuevaCategoria = new EF.Categoria()
             {
@@ -31,6 +31,10 @@ namespace InventSys.Infrastructure.Services
 
             _context.Categorias.Add(nuevaCategoria);
             await _context.SaveChangesAsync();
+
+            categoria.IdCategoria = nuevaCategoria.IdCategoria;
+
+            return categoria;
         }
 
         public async Task EliminarCategoria(int id)

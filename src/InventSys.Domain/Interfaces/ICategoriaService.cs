@@ -7,7 +7,7 @@ namespace InventSys.Domain.Interfaces
         Task<List<Categoria>> ObtenerCategorias();
         Task<Categoria> ObtenerCategoriaPorId(int id);
         Task<Categoria> ObtenerCategoriaPorNombre(string nombreCategoria);
-        Task CrearCategoria(Categoria categoria);
+        Task<Categoria> CrearCategoria(Categoria categoria);
         Task ActualizarCategoria(int idCategoria, Categoria categoria);
         Task EliminarCategoria(int id);
 
