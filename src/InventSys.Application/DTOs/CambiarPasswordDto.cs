@@ -5,10 +5,10 @@ namespace InventSys.Application.DTOs
     public class CambiarPasswordDto
     {
 
-        [Required(ErrorMessage = "Debes colocar la contraseña actual.")]
+        [Required(ErrorMessage = "Ingresa la contraseña actual")]
         public string CurrentPassword { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Escribe la nueva contraseña.")]
+        [Required(ErrorMessage = "Ingresa la nueva contraseña.")]
         public string NuevoPassword { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Repite la nueva contraseña.")]

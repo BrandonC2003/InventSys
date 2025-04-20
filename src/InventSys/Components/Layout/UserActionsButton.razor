@@ -4,7 +4,7 @@
 <div>
     <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" OnClick="ToggleOpen" /> @userName
     <MudPopover Open="@_open" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" RelativeWidth="DropdownWidth.Adaptive">
-        <MudNavLink Icon="@Icons.Material.Filled.Settings" Href="/">Configuración</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.Settings" Href="/perfil">Configuración</MudNavLink>
         <MudDivider Class="my-2"/>
         <MudNavLink Icon="@Icons.Material.Filled.Logout" Href="/Account/LogOut">Cerrar Sesión</MudNavLink>
     </MudPopover>
