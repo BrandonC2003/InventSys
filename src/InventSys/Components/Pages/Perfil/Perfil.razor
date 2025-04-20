@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using System.ComponentModel.DataAnnotations
 @inject ISnackbar Snackbar
+@inject UsuarioUseCase usuarioUseCase
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
     <MudText Typo="Typo.h5" Class="mb-4">Perfil de Usuario</MudText>
@@ -19,7 +20,7 @@
                     <MudTextField @bind-Value="userModel.Nombre" For="@(() => userModel.Nombre)" Label="Nombre" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="userModel.Apellido" ¨For="@(() => userModel.Apellido)" />
+                    <MudTextField @bind-Value="userModel.Apellido" ¨For="@(() => userModel.Apellido)" Label="Apellido"/>
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="userModel.CorreoElectronico" Label="Correo electrónico"
@@ -40,37 +41,41 @@
         <MudText Typo="Typo.h6" Class="mb-3">Cambiar Contraseña</MudText>
         <EditForm Model="@passwordModel" OnValidSubmit="UpdatePassword">
             <DataAnnotationsValidator />
+            @if (!string.IsNullOrEmpty(errorCambiarPassword))
+            {
+                <MudAlert Severity="Severity.Error">@errorCambiarPassword</MudAlert>
+            }
             <MudGrid>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="passwordModel.CurrentPassword"
-                                  For="@(() => passwordModel.CurrentPassword)"
-                                  Label="Contraseña Actual"
-                                  InputType="@_currentPasswordInputType"
-                                  Adornment="Adornment.End"
-                                  AdornmentIcon="@_currentPasswordIcon"
-                                  OnAdornmentClick="ToggleCurrentPasswordVisibility" />
+                    For="@(() => passwordModel.CurrentPassword)"
+                    Label="Contraseña Actual"
+                    InputType="@_currentPasswordInputType"
+                    Adornment="Adornment.End"
+                    AdornmentIcon="@_currentPasswordIcon"
+                    OnAdornmentClick="ToggleCurrentPasswordVisibility" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="passwordModel.NuevoPassword"
-                                  For="@(() => passwordModel.NuevoPassword)"
-                                  Label="Nueva Contraseña"
-                                  InputType="@_newPasswordInputType"
-                                  Adornment="Adornment.End"
-                                  AdornmentIcon="@_newPasswordIcon"
-                                  OnAdornmentClick="ToggleNewPasswordVisibility" />
+                    For="@(() => passwordModel.NuevoPassword)"
+                    Label="Nueva Contraseña"
+                    InputType="@_newPasswordInputType"
+                    Adornment="Adornment.End"
+                    AdornmentIcon="@_newPasswordIcon"
+                    OnAdornmentClick="ToggleNewPasswordVisibility" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="passwordModel.NuevoPasswordRepeat"
-                                  For="@(() => passwordModel.NuevoPasswordRepeat)"
-                                  Label="Confirmar Contraseña"
-                                  InputType="@_confirmPasswordInputType"
-                                  Adornment="Adornment.End"
-                                  AdornmentIcon="@_confirmPasswordIcon"
-                                  OnAdornmentClick="ToggleConfirmPasswordVisibility" />
+                    For="@(() => passwordModel.NuevoPasswordRepeat)"
+                    Label="Confirmar Contraseña"
+                    InputType="@_confirmPasswordInputType"
+                    Adornment="Adornment.End"
+                    AdornmentIcon="@_confirmPasswordIcon"
+                    OnAdornmentClick="ToggleConfirmPasswordVisibility" />
                 </MudItem>
                 <MudItem xs="12" Class="d-flex justify-end">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                               ButtonType="ButtonType.Submit" Class="mr-2">Guardar</MudButton>
+                    ButtonType="ButtonType.Submit" Class="mr-2">Guardar</MudButton>
                 </MudItem>
             </MudGrid>
         </EditForm>
@@ -79,9 +84,10 @@
 
 @code {
     // Modelo para datos del usuario
-    private ActualizarPerfilDto userModel = new ActualizarPerfilDto();
+    private ActualizarPerfilDto userModel = new();
+    private Usuarios usuarioBase = new();
     // Modelo para cambio de contraseña
-    private CambiarPasswordDto passwordModel = new CambiarPasswordDto();
+    private CambiarPasswordDto passwordModel = new();
 
     // Control de visibilidad de contraseña
     private bool _currentPasswordVisibility;
@@ -96,6 +102,8 @@
     private InputType _confirmPasswordInputType = InputType.Password;
     private string _confirmPasswordIcon = Icons.Material.Filled.VisibilityOff;
 
+    string errorCambiarPassword = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         // Aquí cargarías los datos del usuario desde tu servicio
@@ -104,30 +112,57 @@
 
     private async Task LoadUserData()
     {
+        int userId = await usuarioUseCase.GetUserIdAsync();
+
+        usuarioBase = await usuarioUseCase.ObtenerUsuarioAsync(userId);
+
         userModel = new ActualizarPerfilDto
             {
-                Nombre = "Stevens",
-                Apellido = "Laurie",
-                UserName = "Stevens_Laurie",
-                CorreoElectronico = "example@example.com"
+                Nombre = usuarioBase.Nombre,
+                Apellido = usuarioBase.Apellido,
+                UserName = usuarioBase.UserName,
+                CorreoElectronico = usuarioBase.CorreoElectronico
             };
     }
 
     private async Task UpdateUserProfile()
     {
-        // Aquí enviarías los datos actualizados a tu API/servicio
-        // Este es solo un ejemplo simulando una actualización exitosa
-        await Task.Delay(500); // Simula una operación asíncrona
-        Snackbar.Add("Datos actualizados correctamente", Severity.Success);
+        usuarioBase.Nombre = userModel.Nombre;
+        usuarioBase.Apellido = userModel.Apellido;
+        usuarioBase.CorreoElectronico = userModel.CorreoElectronico;
+
+        try
+        {
+            await usuarioUseCase.ActualizarUsuarioAsync(usuarioBase.IdUsuario, usuarioBase);
+            Snackbar.Add("Perfil actualizado correctamente", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Ocurrió un error al actualizar el perfil", Severity.Error);
+        }
+
     }
 
     private async Task UpdatePassword()
     {
-        // Aquí enviarías la contraseña a tu API/servicio para actualizarla
-        // Este es solo un ejemplo simulando una actualización exitosa
-        await Task.Delay(500); // Simula una operación asíncrona
-        Snackbar.Add("Contraseña actualizada correctamente", Severity.Success);
-        ResetPasswordForm();
+        errorCambiarPassword = string.Empty;
+        try
+        {
+            await usuarioUseCase.CambiarClaveAsync(passwordModel, usuarioBase.IdUsuario);
+
+            Snackbar.Add("Contraseña actualizada correctamente", Severity.Success);
+            ResetPasswordForm();
+        }
+        catch (UserException ex)
+        {
+            errorCambiarPassword = ex.Message;
+        }
+        catch (Exception)
+        {
+            
+            Snackbar.Add("Ocurrió un error al actualizar la contraseña", Severity.Error);
+        }
+
     }
 
     private void ResetPasswordForm()
