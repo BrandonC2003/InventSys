@@ -16,7 +16,6 @@ namespace InventSys.Infrastructure.Services
                 throw new KeyNotFoundException("Usuario no encontrado");
 
             usuarioExistente.IdRol = usuario.IdRol;
-            usuarioExistente.UserName = usuario.UserName;
             usuarioExistente.Password = usuario.Password;
             usuarioExistente.Nombre = usuario.Nombre;
             usuarioExistente.Apellido = usuario.Apellido;
