@@ -3,19 +3,26 @@
         <MudText Typo="Typo.h5">Nuevo usuario</MudText>
     </TitleContent>
     <DialogContent>
-        <MudCard>
-            <MudCardContent>
-                <EditForm Model="@crearUsuarioDto" OnValidSubmit="Submit" id="createUserForm">
-                    <DataAnnotationsValidator />
-                    @if (!string.IsNullOrEmpty(errorMessage))
-                    {
-                        <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
-                    }
-                    <MudTextField Label="Nombre" @bind-Value="crearUsuarioDto.Nombre" For="@(() => crearUsuarioDto.Nombre)" Class="mt-3" />
-                    <MudTextField Label="Apellido" @bind-Value="crearUsuarioDto.Apellido" For="@(() => crearUsuarioDto.Apellido)" Class="mt-3" />
-                    <MudTextField Label="Correo" @bind-Value="crearUsuarioDto.Correo" For="@(() => crearUsuarioDto.Correo)" Class="mt-3" />
-                    <MudTextField Label="UserName" @bind-Value="crearUsuarioDto.UserName" For="@(() => crearUsuarioDto.UserName)" Class="mt-3" />
-
+        <EditForm Model="@crearUsuarioDto" OnValidSubmit="Submit" id="createUserForm">
+            <DataAnnotationsValidator />
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+            }
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Nombre" @bind-Value="crearUsuarioDto.Nombre" For="@(() => crearUsuarioDto.Nombre)" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Apellido" @bind-Value="crearUsuarioDto.Apellido" For="@(() => crearUsuarioDto.Apellido)" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Correo" @bind-Value="crearUsuarioDto.Correo" For="@(() => crearUsuarioDto.Correo)" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Nombre de usuario" @bind-Value="crearUsuarioDto.UserName" For="@(() => crearUsuarioDto.UserName)" />
+                </MudItem>
+                <MudItem xs="12">
                     <MudSelect Label="Rol" T="int" @bind-Value="crearUsuarioDto.IdRol" Dense="true" For="@(() => crearUsuarioDto.IdRol)" Class="mt-3">
                         @if (roles is null)
                         {
@@ -30,19 +37,32 @@
                             }
                         }
                     </MudSelect>
-                    <MudTextField Label="Contraseña" Class="mt-3" 
-                    @bind-Value="crearUsuarioDto.Password" For="@(() => crearUsuarioDto.Password)" InputType="InputType.Password" />
-
-                    <MudTextField Label="Contraseña" HelperText="Repite la contraseña" Class="mt-3"
-                    @bind-Value="crearUsuarioDto.PasswordConfirmation" For="@(() => crearUsuarioDto.PasswordConfirmation)" InputType="InputType.Password" />
-
-                </EditForm>
-            </MudCardContent>
-        </MudCard>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Contraseña"
+                                  @bind-Value="crearUsuarioDto.Password"
+                                  For="@(() => crearUsuarioDto.Password)"
+                                  InputType="@passwordInputType"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@passwordIcon"
+                                  OnAdornmentClick="TogglePasswordVisibility" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Contraseña"
+                                  HelperText="Repite la contraseña"
+                                  @bind-Value="crearUsuarioDto.PasswordConfirmation"
+                                  For="@(() => crearUsuarioDto.PasswordConfirmation)"
+                                  InputType="@confirmPasswordInputType"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@confirmPasswordIcon"
+                                  OnAdornmentClick="ToggleConfirmPasswordVisibility" />
+                </MudItem>
+            </MudGrid>
+        </EditForm>
     </DialogContent>
     <DialogActions>
-        <MudButton StartIcon="@Icons.Material.Filled.Close" OnClick="Cancel">Cancelar</MudButton>
-        <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" ButtonType="ButtonType.Submit" Form="createUserForm">Crear usuario</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" OnClick="Cancel" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Form="createUserForm">Crear usuario</MudButton>
     </DialogActions>
 </MudDialog>
 @code {
@@ -59,6 +79,14 @@
     private CrearUsuarioDto crearUsuarioDto = new();
 
     private string errorMessage = string.Empty;
+
+    private bool passwordVisibility;
+    private InputType passwordInputType = InputType.Password;
+    private string passwordIcon = Icons.Material.Filled.VisibilityOff;
+
+    private bool confirmPasswordVisibility;
+    private InputType confirmPasswordInputType = InputType.Password;
+    private string confirmPasswordIcon = Icons.Material.Filled.VisibilityOff;
 
     protected override async Task OnInitializedAsync()
     {
@@ -87,5 +115,19 @@
     }
 
     private void Cancel() => MudDialog.Cancel();
+
+    private void TogglePasswordVisibility()
+    {
+        passwordVisibility = !passwordVisibility;
+        passwordInputType = passwordVisibility ? InputType.Text : InputType.Password;
+        passwordIcon = passwordVisibility ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+    }
+
+    private void ToggleConfirmPasswordVisibility()
+    {
+        confirmPasswordVisibility = !confirmPasswordVisibility;
+        confirmPasswordInputType = confirmPasswordVisibility ? InputType.Text : InputType.Password;
+        confirmPasswordIcon = confirmPasswordVisibility ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+    }
 
 }
