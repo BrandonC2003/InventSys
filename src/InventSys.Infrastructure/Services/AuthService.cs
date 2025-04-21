@@ -21,6 +21,32 @@ namespace InventSys.Infrastructure.Services
             return true;
         }
 
+        public async Task DarAccesoTemporalAsync()
+        {
+
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.Name, "TempUser"),
+                new(ClaimTypes.NameIdentifier, "-1"),
+                new(ClaimTypes.Role, "TempAcces")
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, "CustomAuth");
+
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(5)
+            };
+
+            await _httpContextAccessor.HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            claimsPrincipal,
+            authProperties);
+        }
+
         public async Task<int> IniciarSesionAsync(string userName, string password)
         {
             // Validar las credenciales del usuario

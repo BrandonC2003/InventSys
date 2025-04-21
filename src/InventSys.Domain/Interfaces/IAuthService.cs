@@ -10,5 +10,7 @@
         /// <returns>Id del usuario que inició sesión, si retorna -1 significa que no inició sesión</returns>
         Task<int> IniciarSesionAsync(string userName, string password);
         Task<bool> CerrarSesionAsync(int userId);
+
+        Task DarAccesoTemporalAsync();
     }
 }
