@@ -17,8 +17,15 @@ namespace InventSys.Pages.Account
 
         public string? ReturnUrl { get; set; }
 
-        public IActionResult OnGet(string? returnUrl = null)
+        public async Task<IActionResult> OnGet(string? returnUrl = null)
         {
+            var hayUsuariosRegistrados = await _usuarioUseCase.HayUsuariosRegistrado();
+            if (!hayUsuariosRegistrados) 
+            {
+                await _usuarioUseCase.DarAccesoTemporalAsync();
+                return LocalRedirect("/crearPrimerUsuario");
+            }
+
             ReturnUrl = returnUrl;
             return Page();
         }

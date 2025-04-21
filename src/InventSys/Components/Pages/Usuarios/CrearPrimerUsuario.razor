@@ -1,4 +1,4 @@
-﻿@page "/PrimerUsuario"
+﻿@page "/crearPrimerUsuario"
 @attribute [Authorize(Roles = "TempAcces")]
 @layout Layout.UnauthorizedLayout
 @inject UsuarioUseCase UsuarioUseCase
@@ -106,7 +106,7 @@
 
     private void Cancelar()
     {
-        Navigation.NavigateTo("/Account/Login", true);
+        Navigation.NavigateTo("/Account/LogOut", true);
     }
 
     private void TogglePasswordVisibility()
