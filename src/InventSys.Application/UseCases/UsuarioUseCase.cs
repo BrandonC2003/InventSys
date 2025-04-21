@@ -136,5 +136,15 @@ namespace InventSys.Application.UseCases
 
             return rolUsuario == rol;
         }
+
+        public async Task<bool> HayUsuariosRegistrado()
+        {
+            return await _usuarioService.HayUsuariosRegistrado();
+        }
+
+        public async Task DarAccesoTemporalAsync()
+        {
+            await _authService.DarAccesoTemporalAsync();
+        }
     }
 }
