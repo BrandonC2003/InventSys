@@ -38,7 +38,12 @@ namespace InventSys.Application.UseCases
         public async Task<bool> CerrarSesionAsync()
         {
             int userId = await GetUserIdAsync();
-            await CambiarEstadoAsync(userId, UserStatus.FueraSistema);
+
+            //Se valida que el usuario sea valido para evitar excepciones
+            if (userId > 0)
+            {
+                await CambiarEstadoAsync(userId, UserStatus.FueraSistema);
+            }
             return await _authService.CerrarSesionAsync(userId);
         }
 
