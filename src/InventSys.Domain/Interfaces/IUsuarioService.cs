@@ -12,6 +12,7 @@ namespace InventSys.Domain.Interfaces
         Task ActualizarUsuarioAsync(int userId, Usuarios usuario);
         Task CambiarEstadoAsync(int userId, UserStatus userStatus);
         Task CambiarClaveAsync(int userId, string newPassword);
+        Task<bool> HayUsuariosRegistrado();
 
     }
 }

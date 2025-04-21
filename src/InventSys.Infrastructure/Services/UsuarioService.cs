@@ -69,6 +69,16 @@ namespace InventSys.Infrastructure.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task<bool> HayUsuariosRegistrado()
+        {
+            var cantidadUsuarios = await (
+                from u in _context.Usuarios
+                select u
+                ).CountAsync();
+
+            return cantidadUsuarios > 0;
+        }
+
         public async Task<Usuarios> ObtenerUsuarioAsync(int userId)
         {
             var usuario = await (
