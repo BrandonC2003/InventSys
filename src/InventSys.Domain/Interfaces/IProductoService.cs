@@ -10,5 +10,6 @@ namespace InventSys.Domain.Interfaces
         Task<Producto> CrearProducto(Producto producto);
         Task ActualizarProducto(int idProducto, Producto producto);
         Task EliminarProducto(int id);
+        Task DescontarStockAsync(int idProducto, int cantidad);
     }
 }
