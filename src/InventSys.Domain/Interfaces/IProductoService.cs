@@ -10,6 +10,16 @@ namespace InventSys.Domain.Interfaces
         Task<Producto> CrearProducto(Producto producto);
         Task ActualizarProducto(int idProducto, Producto producto);
         Task EliminarProducto(int id);
-        Task DescontarStockAsync(int idProducto, int cantidad);
+
+        /// <summary>
+        /// Descontar stock de un producto
+        /// </summary>
+        /// <param name="idProducto"></param>
+        /// <param name="cantidad"></param>
+        /// <param name="dbContext">Contexto de datos (puede ser nulo) para que funcione correctamente dentro de transacciones externas</param>
+        /// <returns></returns>
+        /// <exception cref="KeyNotFoundException">Cuando no se encuentra un producto con el id especificado</exception>
+        /// <exception cref="InvalidOperationException">Cuando la cantidad a descontar es mayor a la cantidad existente</exception>
+        Task DescontarStockAsync(int idProducto, int cantidad, object? dbContext = null);
     }
 }

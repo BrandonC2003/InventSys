@@ -52,9 +52,12 @@ namespace InventSys.Infrastructure.Services
             return producto;
         }
 
-        public async Task DescontarStockAsync(int idProducto, int cantidad)
+        
+        public async Task DescontarStockAsync(int idProducto, int cantidad, object? dbContext = null)
         {
-            var producto = await _context.Productos.FindAsync(idProducto) ??
+            EF.InventSysDbContext dbContext1 = dbContext as EF.InventSysDbContext ?? _context;
+
+            var producto = await dbContext1.Productos.FindAsync(idProducto) ??
                 throw new KeyNotFoundException("No se encontró un producto con ese id");
 
             if (producto.Stok < cantidad)
@@ -62,8 +65,8 @@ namespace InventSys.Infrastructure.Services
 
             producto.Stok -= cantidad;
 
-            _context.Productos.Update(producto);
-            await _context.SaveChangesAsync();
+            dbContext1.Productos.Update(producto);
+            await dbContext1.SaveChangesAsync();
         }
 
         public async Task EliminarProducto(int id)
