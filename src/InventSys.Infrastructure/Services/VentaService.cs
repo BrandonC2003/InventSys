@@ -21,7 +21,7 @@ namespace InventSys.Infrastructure.Services
                 {
                     IdUsuario = venta.IdUsuario,
                     PrecioTotal = venta.PrecioTotal,
-                    FechaVenta = DateTime.Now,
+                    FechaVenta = venta.FechaVenta,
                     DetalleVenta = [.. venta.DetalleVenta.Select(d => new EF.DetalleVentum()
                     {
                         IdProducto = d.IdProducto,
