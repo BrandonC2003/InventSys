@@ -9,7 +9,7 @@
 <MudText Typo="Typo.h4" Class="mb-4">Usuarios</MudText>
 
 <MudTable Items="@Usuarios" Hover="true" Filter="new Func<Usuarios,bool>(FilterFunc1)" SortLabel="Ordenar Por"
-          RowEditCommit="ActualizarUsuario" RowEditPreview="RespaldarUsuario">
+          RowEditCommit="ActualizarUsuario" RowEditPreview="RespaldarUsuario" EditTrigger="TableEditTrigger.EditButton">
     <ToolBarContent>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AbrirNuevoUsuario">
             <MudIcon Icon="@Icons.Material.Filled.Add" /> Nuevo Usuario
@@ -92,6 +92,9 @@
         HorizontalAlignment="HorizontalAlignment.Center"
         HidePageNumber="true" />
     </PagerContent>
+    <EditButtonContent Context="button">
+        <MudIconButton Color="Color.Primary"  Icon="@Icons.Material.Filled.Edit" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
+    </EditButtonContent>
 </MudTable>
 
 @code {
