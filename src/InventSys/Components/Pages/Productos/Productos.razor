@@ -1,0 +1,149 @@
+﻿@page "/Productos"
+@attribute [Authorize(Roles = "Administrador, Bodeguero")]
+
+@inject IDialogService DialogService
+@inject ProductoUseCase productoUseCase
+@inject ProveedorUseCase proveedorUseCase
+@inject CategoriaUseCase categoriaUseCase
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">Productos</MudText>
+
+<MudTable Items="@productos" Hover="true" Filter="new Func<Producto,bool>(FilterFunc1)" SortLabel="Ordenar Por">
+    <ToolBarContent>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AbrirCrearProducto">
+            <MudIcon Icon="@Icons.Material.Filled.Add" /> Nuevo Producto
+        </MudButton>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Producto, object>(x=>x.NombreProducto)">
+                Producto
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>Categoria</MudTh>
+        <MudTh>Proveedor</MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Producto, object>(x=>x.PrecioCompra)">
+                Precio Compra
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Producto, object>(x=>x.PrecioVenta)">
+                Precio Venta
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Producto, object>(x=>x.Stok)">
+                Stok
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            Acciones
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>
+            @context.NombreProducto
+        </MudTd>
+        <MudTd>
+            @context.IdCategoriaNavigation.NombreCategoria
+        </MudTd>
+        <MudTd>
+            @context.IdProveedorNavigation.NombreProveedor
+        </MudTd>
+        <MudTd>
+            @context.PrecioCompra
+        </MudTd>
+        <MudTd>
+            @context.PrecioVenta
+        </MudTd>
+        <MudTd>
+            @context.Stok
+        </MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => AbrirEditarProducto(@context))" />
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100}"
+        RowsPerPageString="Filas por página:"
+        HorizontalAlignment="HorizontalAlignment.Center"
+        HidePageNumber="true" />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private List<Producto> productosInternos = new();
+
+    private string searchString1 = "";
+
+    private List<Categoria>? categorias;
+    private List<Proveedor>? proveedores;
+
+    private Producto productoBackup = new();
+
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+    // Esto es lo que se mostrará en la tabla
+    private IEnumerable<Producto> productos => productosInternos;
+
+    //Carga de los usuarios desde la base de datos
+    protected override async Task OnInitializedAsync()
+    {
+        productosInternos = await productoUseCase.ObtenerProductos();
+        categorias = await categoriaUseCase.ObtenerCategorias();
+        proveedores = await proveedorUseCase.ObtenerProveedores();
+    }
+
+    private async Task AbrirCrearProducto()
+    {
+        var dialog = await DialogService.ShowAsync<CrearProductoDialog>("Nuevo Producto", _maxWidth);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is Producto nuevo)
+        {
+            productosInternos.Add(nuevo);
+            Snackbar.Add($"El produto {nuevo.NombreProducto} fue creado exitosamente", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("La operación de crear producto fué cancelada", Severity.Info);
+        }
+    }
+
+    private async Task AbrirEditarProducto(Producto producto)
+    {
+        var dialog = await DialogService.ShowAsync<EditarProductoDialog>("Editar Producto", new DialogParameters { { "ProductoParam", producto } }, _maxWidth);
+        var result = await dialog.Result;
+        if (!result.Canceled && result.Data is Producto productoEditado)
+        {
+            var index = productosInternos.FindIndex(p => p.IdProducto == productoEditado.IdProducto);
+            if (index != -1)
+            {
+                productosInternos[index] = productoEditado;
+                Snackbar.Add($"El produto {productoEditado.NombreProducto} fue actualizado exitosamente", Severity.Success);
+            }
+        }
+        else
+        {
+            Snackbar.Add("La operación de modificar producto fué cancelada", Severity.Info);
+        }
+    }
+
+    private bool FilterFunc1(Producto element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Producto element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.NombreProducto.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.IdCategoriaNavigation.NombreCategoria.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.IdProveedorNavigation.NombreProveedor.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}

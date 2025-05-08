@@ -1,0 +1,159 @@
+﻿<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">Modificar producto</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="@producto" OnValidSubmit="Submit" id="UpdateProductoForm">
+            <DataAnnotationsValidator />
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+            }
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Label="Producto" @bind-Value="producto.NombreProducto" For="@(() => producto.NombreProducto)" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudAutocomplete T="Categoria"
+                    Label="Categoria"
+                    @bind-Value="producto.Categoria"
+                    For="@(() => producto.Categoria)"
+                    ToStringFunc="categoria => categoria?.NombreCategoria"
+                    SearchFunc="BuscarCategoria" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudAutocomplete T="Proveedor"
+                    Label="Proveedor"
+                    @bind-Value="producto.Proveedor"
+                    For="@(() => producto.Proveedor)"
+                    ToStringFunc="proveedor => proveedor?.NombreProveedor"
+                    SearchFunc="BuscarProveedor" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Descripción" @bind-Value="producto.Descripcion" For="@(() => producto.Descripcion)" Lines="3" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudNumericField Label="Precio de compra" @bind-Value="producto.PrecioCompra" For="@(() => producto.PrecioCompra)" Min="0.0" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudNumericField Label="Precio de venta" @bind-Value="producto.PrecioVenta" For="@(() => producto.PrecioVenta)" Min="0.0" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudNumericField Label="Stok" @bind-Value="producto.Stok" For="@(() => producto.Stok)" Min="0" />
+                </MudItem>
+                @if (producto.Stok != ProductoParam.Stok)
+                {
+                    <MudItem xs="12">
+                        <MudTextField Label="Razón del cambio" @bind-Value="producto.RazonCambio" For="@(() => producto.RazonCambio)" Lines="3" Required RequiredError="Ingresa la razón por la cual cambió el stok"/>
+                    </MudItem>
+                }
+
+                <MudItem xs="12">
+                    <MudNumericField Label="Stok bajo" @bind-Value="producto.StokBajo" For="@(() => producto.StokBajo)" Min="0" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Mensaje de alerta" @bind-Value="producto.MensajeAlerta" For="@(() => producto.MensajeAlerta)" Lines="3" />
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" OnClick="Cancel" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Form="UpdateProductoForm">Modifica producto</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public Producto ProductoParam { get; set; }
+    [Inject]
+    private ProductoUseCase ProductoUseCase { get; set; }
+    [Inject]
+    private CategoriaUseCase CategoriaUseCase { get; set; }
+    [Inject]
+    private ProveedorUseCase ProveedorUseCase { get; set; }
+
+    private List<Categoria> categorias = new();
+    private List<Proveedor> proveedores = new();
+
+    private ProductoDto producto = new();
+
+    private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        categorias = await CategoriaUseCase.ObtenerCategorias();
+        proveedores = await ProveedorUseCase.ObtenerProveedores();
+        producto = new ProductoDto
+            {
+                NombreProducto = ProductoParam.NombreProducto,
+                Categoria = ProductoParam.IdCategoriaNavigation,
+                Proveedor = ProductoParam.IdProveedorNavigation,
+                Descripcion = ProductoParam.Descripcion,
+                PrecioCompra = (double)ProductoParam.PrecioCompra,
+                PrecioVenta = (double)ProductoParam.PrecioVenta,
+                Stok = ProductoParam.Stok,
+                StokBajo = ProductoParam.StokBajo,
+                MensajeAlerta = ProductoParam.MensajeAlerta
+            };
+    }
+
+
+    private async Task Submit()
+    {
+        errorMessage = string.Empty;
+        try
+        {
+            var productoModificar = new Producto()
+                {
+                    NombreProducto = producto.NombreProducto,
+                    IdCategoria = producto.Categoria.IdCategoria,
+                    IdProveedor = producto.Proveedor.IdProveedor,
+                    Descripcion = producto.Descripcion,
+                    PrecioCompra = (decimal)producto.PrecioCompra,
+                    PrecioVenta = (decimal)producto.PrecioVenta,
+                    Stok = producto.Stok,
+                    StokBajo = producto.StokBajo,
+                    MensajeAlerta = producto.MensajeAlerta
+                };
+
+            var productoModificado = await ProductoUseCase.ActualizarProducto(ProductoParam.IdProducto,productoModificar,producto.RazonCambio);
+            productoModificado.IdCategoriaNavigation = producto.Categoria;
+            productoModificado.IdProveedorNavigation = producto.Proveedor;
+
+            MudDialog.Close(DialogResult.Ok(productoModificado));
+        }
+        catch (CustomExeption ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            errorMessage = "Ocurrió un error al crear el producto";
+        }
+
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private Task<IEnumerable<Categoria>> BuscarCategoria(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Task.FromResult((IEnumerable<Categoria>)categorias);
+        }
+        return Task.FromResult(categorias.Where(c => c.NombreCategoria.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private Task<IEnumerable<Proveedor>> BuscarProveedor(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Task.FromResult((IEnumerable<Proveedor>)proveedores);
+        }
+        return Task.FromResult(proveedores.Where(c => c.NombreProveedor.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+}

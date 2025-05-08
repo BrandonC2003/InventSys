@@ -70,9 +70,10 @@ namespace InventSys.Application.UseCases
             return productoCreado;
         }
 
-        public async Task ActualizarProducto(int idProducto, Producto producto, string razonDeActualizacion)
+        public async Task<Producto> ActualizarProducto(int idProducto, Producto producto, string razonDeActualizacion)
         {
             var productoExistente = await ObtenerProductoPorId(idProducto);
+            producto.IdProducto = idProducto;
             //valido que el nombre del producto no exista en la base de datos
             try
             {
@@ -96,6 +97,7 @@ namespace InventSys.Application.UseCases
                 Descripcion = razonDeActualizacion
             };
             await _auditoriaProductoUseCase.RegistrarAuditoria(auditoria);
+            return producto;
         }
 
         public async Task EliminarProducto(int id, string razonDeEliminacion)
