@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventSys.Infrastructure", 
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "InventSys.DB", "InventSys.DB\InventSys.DB.sqlproj", "{E8E7FD4B-D4D9-44BD-B07D-29150B397F3C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventSysNotificationService", "InventSysNotificationService\InventSysNotificationService.csproj", "{02E83DBB-894A-4D16-BDD2-C279A4AF83A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{E8E7FD4B-D4D9-44BD-B07D-29150B397F3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8E7FD4B-D4D9-44BD-B07D-29150B397F3C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E8E7FD4B-D4D9-44BD-B07D-29150B397F3C}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{02E83DBB-894A-4D16-BDD2-C279A4AF83A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02E83DBB-894A-4D16-BDD2-C279A4AF83A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02E83DBB-894A-4D16-BDD2-C279A4AF83A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02E83DBB-894A-4D16-BDD2-C279A4AF83A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
