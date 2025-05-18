@@ -1,4 +1,5 @@
 ﻿using InventSys.Domain.Entities;
+using InventSys.Domain.Enums;
 using InventSys.Domain.Exceptions;
 using InventSys.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -183,6 +184,48 @@ namespace InventSys.Infrastructure.Services
                 }).ToListAsync();
 
             return productos;
+        }
+
+        public async Task<List<Producto>> ObtenerProductosConStokBajo()
+        {
+            var productosStokBajo = await _context.Productos
+                .Include(p => p.IdProveedorNavigation)
+                .Include(p => p.IdCategoriaNavigation)
+                .Where(p => p.Stok <= p.StokBajo)
+                .Select(p => new Producto
+                {
+                    IdProducto = p.IdProducto,
+                    IdCategoria = p.IdCategoria,
+                    IdProveedor = p.IdProveedor,
+                    NombreProducto = p.NombreProducto,
+                    Descripcion = p.Descripcion,
+                    PrecioCompra = p.PrecioCompra,
+                    PrecioVenta = p.PrecioVenta,
+                    Stok = p.Stok,
+                    StokBajo = p.StokBajo,
+                    MensajeAlerta = p.MensajeAlerta,
+                    IdCategoriaNavigation = new Categoria
+                    {
+                        IdCategoria = p.IdCategoriaNavigation.IdCategoria,
+                        NombreCategoria = p.IdCategoriaNavigation.NombreCategoria
+                    },
+                    IdProveedorNavigation = new Proveedor
+                    {
+                        IdProveedor = p.IdProveedorNavigation.IdProveedor,
+                        NombreProveedor = p.IdProveedorNavigation.NombreProveedor
+                    }
+                }).ToListAsync();
+            return productosStokBajo;
+        }
+
+        public async Task<bool> TieneAlertas(int idProducto, int minutosAConsiderar)
+        {
+            var tieneAlertas = await _context.TrazaAlertas
+                .AnyAsync(t => t.IdProducto == idProducto &&
+                    t.Fecha >= DateTime.Now.AddMinutes(-minutosAConsiderar) &&
+                    t.EstadoAlerta == (byte)EstadoAlerta.Enviada);
+
+            return tieneAlertas;
         }
     }
 }

@@ -23,7 +23,7 @@ namespace InventSys.Infrastructure.Services
 
         public async Task<TrazaAlerta> GuardarTrazaAlertaAsync(TrazaAlerta traza)
         {
-            var nuevaAleeta = new EF.TrazaAlerta()
+            var nuevaAlerta = new EF.TrazaAlerta()
             {
                 IdUsuario = traza.IdUsuario,
                 IdProducto = traza.IdProducto,
@@ -32,10 +32,10 @@ namespace InventSys.Infrastructure.Services
                 Contenido = traza.Contenido
             };
 
-            _context.TrazaAlertas.Add(nuevaAleeta);
+            _context.TrazaAlertas.Add(nuevaAlerta);
             await _context.SaveChangesAsync();
 
-            traza.IdTrazaAlerta = nuevaAleeta.IdTrazaAlerta;
+            traza.IdTrazaAlerta = nuevaAlerta.IdTrazaAlerta;
             return traza;
         }
 

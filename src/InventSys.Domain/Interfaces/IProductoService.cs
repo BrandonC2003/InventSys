@@ -5,6 +5,7 @@ namespace InventSys.Domain.Interfaces
     public interface IProductoService
     {
         Task<List<Producto>> ObtenerProductos();
+        Task<List<Producto>> ObtenerProductosConStokBajo();
         Task<Producto> ObtenerProductoPorId(int id);
         Task<Producto> ObtenerProductoPorNombre(string nombreProducto);
         Task<Producto> CrearProducto(Producto producto);
@@ -21,5 +22,13 @@ namespace InventSys.Domain.Interfaces
         /// <exception cref="KeyNotFoundException">Cuando no se encuentra un producto con el id especificado</exception>
         /// <exception cref="InvalidOperationException">Cuando la cantidad a descontar es mayor a la cantidad existente</exception>
         Task DescontarStockAsync(int idProducto, int cantidad, object? dbContext = null);
+
+        /// <summary>
+        /// Valida si el producto tiene alertas en los  minutosAConsiderar
+        /// </summary>
+        /// <param name="idProducto"></param>
+        /// <param name="minutosAConsiderar"></param>
+        /// <returns></returns>
+        Task<bool> TieneAlertas(int idProducto, int minutosAConsiderar);
     }
 }
