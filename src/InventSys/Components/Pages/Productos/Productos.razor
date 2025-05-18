@@ -1,5 +1,5 @@
 ﻿@page "/Productos"
-@attribute [Authorize(Roles = "Administrador, Bodeguero")]
+@attribute [Authorize(Roles = "Administrador, Almacenista")]
 
 @inject IDialogService DialogService
 @inject ProductoUseCase productoUseCase

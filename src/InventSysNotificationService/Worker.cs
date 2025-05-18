@@ -68,7 +68,7 @@ namespace InventSysNotificationService
         {
             var roles = await rolCatalogoService.ObtenerRolesAsync();
             var rolesPermitidos = roles
-                .Where(r => r.Rol == "Administrador" || r.Rol == "Bodeguero")
+                .Where(r => r.Rol == "Administrador" || r.Rol == "Almacenista")
                 .Select(r => r.IdRol)
                 .ToList();
 
