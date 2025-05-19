@@ -2,6 +2,7 @@
 using InventSys.Domain.Enums;
 using InventSys.Domain.Exceptions;
 using InventSys.Domain.Interfaces;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using EF = InventSys.Infrastructure.Data.EntityFramework;
@@ -53,7 +54,7 @@ namespace InventSys.Infrastructure.Services
             return producto;
         }
 
-        
+
         public async Task DescontarStockAsync(int idProducto, int cantidad, object? dbContext = null)
         {
             EF.InventSysDbContext dbContext1 = dbContext as EF.InventSysDbContext ?? _context;
@@ -62,7 +63,7 @@ namespace InventSys.Infrastructure.Services
                 throw new KeyNotFoundException("No se encontró un producto con ese id");
 
             if (producto.Stok < cantidad)
-                throw new InvalidOperationException("No hay suficiente stock para descontar la cantidad solicitada");
+                throw new InvalidOperationException("No hay suficiente stock para descontar la cantidad solicitada del producto "+producto.NombreProducto);
 
             producto.Stok -= cantidad;
 

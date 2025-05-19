@@ -1,0 +1,217 @@
+﻿@page "/Ventas"
+@attribute [Authorize(Roles = "Administrador, Vendedor")]
+
+@inject IDialogService DialogService
+@inject ProductoUseCase productoUseCase
+@inject VentaUseCase ventaUseCase
+@inject UsuarioUseCase usuarioUseCase
+@inject ISnackbar Snackbar
+@using System.ComponentModel.DataAnnotations
+
+<MudText Typo="Typo.h4" Class="mb-4">Ventas</MudText>
+
+<!-- Formulario superior -->
+<MudPaper Class="p-4 mb-4" Elevation="1">
+    <MudForm @ref="detalleVentaForm" @bind-IsValid="isValidDetalleVentaForm">
+        <MudGrid Spacing="2">
+            <MudItem xs="12" sm="4">
+                <MudAutocomplete T="Producto"
+                                 Label="Producto"
+                                 @bind-Value="producto"
+                                 ToStringFunc="@(p => p?.NombreProducto ?? string.Empty)"
+                                 SearchFunc="BuscarProducto"
+                                 Dense="true"
+                                 Clearable="true" 
+                                 Validation="@(new Func<Producto,string>(ValidarProductoSeleccionado))"
+                                 onselect="@(() => detalleVentaForm.Validate())"/>
+            </MudItem>
+
+            <MudItem xs="6" sm="4">
+                <MudNumericField Label="Cantidad"
+                                 T="int"
+                                 @bind-Value="cantidad"
+                                 Min="1"
+                                 Dense="true"
+                                 Validation="@(new Func<int,string>(ValidarCantidadProducto))" />
+            </MudItem>
+
+            <MudItem xs="6" sm="4" Class="d-flex align-items-end justify-end">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="AgregarProducoAVenta">
+                    Agregar
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudForm>
+</MudPaper>
+
+<!-- Tabla de productos agregados -->
+<MudTable Items="@detalleVentas" Hover="true" Elevation="1" CustomFooter="true">
+    <HeaderContent>
+        <MudTh>Producto</MudTh>
+        <MudTh>Cantidad</MudTh>
+        <MudTh>Precio Unitario</MudTh>
+        <MudTh>Sub Total</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.IdProductoNavigation.NombreProducto</MudTd>
+        <MudTd>@context.Cantidad</MudTd>
+        <MudTd>@context.PrecioUnitario.ToString("C")</MudTd>
+        <MudTd>@(CalcularSubTotal(context.Cantidad, context.PrecioUnitario).ToString("C"))</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => EliminarVentaProducto(context))" />
+        </MudTd>
+    </RowTemplate>
+    <FooterContent>
+        <MudTFootRow>
+            <MudTd colspan="2">
+            </MudTd>
+            <MudTd>
+                <b>Total:</b>
+            </MudTd>
+            <MudTd>
+                @(ObtenerPrecioTotal().ToString("C"))
+            </MudTd>
+            <MudTd></MudTd>
+        </MudTFootRow>
+    </FooterContent>
+</MudTable>
+
+<!-- Confirmar venta -->
+<MudPaper Class="d-flex justify-end p-4 mb-4">
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Check"
+               OnClick="ConfirmarVenta"
+               Disabled="@(!detalleVentas.Any())">
+        Confirmar
+    </MudButton>
+</MudPaper>
+
+@code {
+    private List<DetalleVenta> detalleVentasInterno = new();
+    private IEnumerable<DetalleVenta> detalleVentas => detalleVentasInterno;
+    private List<Producto> productos = new();
+
+    private Producto producto = new();
+    private int cantidad = 1;
+
+    private decimal CalcularSubTotal(int cantidad, decimal precio) => cantidad * precio; 
+
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+    MudForm detalleVentaForm;
+    private bool isValidDetalleVentaForm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        productos = await productoUseCase.ObtenerProductos();
+    }
+
+    private Task<IEnumerable<Producto>> BuscarProducto(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult((IEnumerable<Producto>)productos);
+
+        return Task.FromResult(productos.Where(p =>
+            p.NombreProducto.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private void AgregarProducoAVenta()
+    {
+        detalleVentaForm.Validate();
+
+        if (!isValidDetalleVentaForm)
+            return;
+
+        var productoExistente = detalleVentasInterno.FirstOrDefault(d => d.IdProducto == producto.IdProducto);
+
+        if (productoExistente != null)
+        {
+            // Producto ya en la lista: sumar cantidad
+            productoExistente.Cantidad += cantidad;
+        }
+        else
+        {
+            // Producto nuevo: agregar a la lista
+            detalleVentasInterno.Add(new DetalleVenta
+                {
+                    IdProducto = producto.IdProducto,
+                    Cantidad = cantidad,
+                    PrecioUnitario = producto.PrecioVenta,
+                    IdProductoNavigation = producto
+                });
+        }
+
+        // Reset campos
+        producto = new();
+        cantidad = 1;
+    }
+
+    private decimal ObtenerPrecioTotal()
+    {
+        return detalleVentasInterno.Sum(d => CalcularSubTotal(d.Cantidad, d.PrecioUnitario));
+    }
+
+    private async Task ConfirmarVenta()
+    {
+        var dialog = await DialogService.ShowAsync<ConfirmacionVentaDialog>("Confirmar Venta", new DialogParameters { { "PrecioTotal", ObtenerPrecioTotal() } }, _maxWidth);
+        var result = await dialog.Result;
+        if (!result.Canceled && result.Data is bool confirmado)
+        {
+            if (confirmado)
+            {
+                try
+                {
+                    var venta = new 
+                    Venta
+                        {
+                            DetalleVenta = detalleVentasInterno,
+                            PrecioTotal = ObtenerPrecioTotal(),
+                            FechaVenta = DateTime.Now,
+                            IdUsuario = await usuarioUseCase.GetUserIdAsync()
+                        };
+
+                    await ventaUseCase.RegistrarVentaAsync(venta);
+
+                    Snackbar.Add("Venta confirmada correctamente.", Severity.Success);
+                    detalleVentasInterno.Clear();
+                }
+                catch (CustomExeption ex)
+                {
+                    Snackbar.Add(ex.Message, Severity.Error);
+                }
+                catch (Exception)
+                {
+                    Snackbar.Add("Ocurrió un error al registrar la venta", Severity.Error);
+                }
+
+            }
+        }
+    }
+
+    private string ValidarProductoSeleccionado(Producto productoSeleccioando)
+    {
+        if (productoSeleccioando != null && productoSeleccioando.IdProducto > 0)
+            return null;
+        return "Selecciona un producto válido";
+    }
+    private string ValidarCantidadProducto(int cantidad)
+    {
+        if (producto.IdProducto == default)
+            return null;
+
+        if (cantidad > producto.Stok)
+            return "No hay suficiente producto en el stok";
+
+        return null;
+    }
+
+    private void EliminarVentaProducto(DetalleVenta ventaProducto)
+    {
+        detalleVentasInterno.Remove(ventaProducto);
+    }
+}

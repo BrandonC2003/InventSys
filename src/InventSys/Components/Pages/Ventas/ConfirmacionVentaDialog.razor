@@ -1,0 +1,58 @@
+﻿<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">Confirmar Venta</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="isValidForm" @bind-Errors="errors">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Label="Precio Total" @bind-Value="PrecioTotal" Disabled />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudNumericField Label="Pagado Con" @bind-Value="pagadoCon" Min="0.0" Validation="@(new Func<double,string>(ValidarPago))" />
+                </MudItem>
+                <MudItem xs="12">
+                    <b>Cambio: </b> @cambio.ToString("C")
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" OnClick="Cancel" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Check" Variant="Variant.Filled" Color="Color.Primary" onclick="Submit">Confirmar Venta</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public decimal PrecioTotal { get; set; }
+    private double pagadoCon;
+    private decimal cambio => ((decimal)pagadoCon - PrecioTotal) < 0 ? 0 : (decimal)pagadoCon - PrecioTotal;
+    MudForm form;
+    private bool isValidForm;
+    string[] errors = { };
+
+    private void Submit()
+    {
+        form.Validate();
+
+        if (isValidForm)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private string ValidarPago(double pago)
+    {
+        if ((decimal)pago < PrecioTotal)
+        {
+            return "El monto pagado debe ser mayor o igual al total de la venta.";
+        }
+        return null;
+    }
+
+}

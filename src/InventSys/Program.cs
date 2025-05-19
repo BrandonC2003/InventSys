@@ -40,6 +40,7 @@ builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IAuditoriaProductoService, AuditoriaProductoService>();
 builder.Services.AddScoped<ITrazaAlertaService, TrazaAlertaService>();
+builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<UsuarioUseCase>();
 builder.Services.AddScoped<ProveedorUseCase>();
 builder.Services.AddScoped<CategoriaUseCase>();
@@ -47,6 +48,7 @@ builder.Services.AddScoped<RolCatalogoUseCase>();
 builder.Services.AddScoped<AuditoriaProductoUseCase>();
 builder.Services.AddScoped<ProductoUseCase>();
 builder.Services.AddScoped<TrazaAlertaUseCase>();
+builder.Services.AddScoped<VentaUseCase>();
 
 // Configuración de Blazor y Razor Pages
 builder.Services.AddRazorPages(); 
