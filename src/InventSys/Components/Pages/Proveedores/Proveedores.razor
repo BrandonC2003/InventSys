@@ -1,7 +1,163 @@
 ﻿@page "/Proveedores"
+@using System.Text.RegularExpressions
 @attribute [Authorize(Roles = "Administrador, Almacenista")]
-<h3>Proveedores</h3>
+
+@inject IDialogService DialogService
+@inject ProveedorUseCase proveedorUseCase
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">Proveedores</MudText>
+
+<MudTable Items="@Proveedors" Hover="true" Filter="new Func<Proveedor,bool>(FilterFunc1)" SortLabel="Ordenar Por"
+          RowEditCommit="ActualizarProveedor" RowEditPreview="RespaldarProveedor" EditTrigger="TableEditTrigger.EditButton">
+    <ToolBarContent>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AbrirNuevoProveedor">
+            <MudIcon Icon="@Icons.Material.Filled.Add" /> Nuevo Proveedor
+        </MudButton>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Proveedor, object>(x=>x.NombreProveedor)">
+                Proveedor
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>Correo</MudTh>
+        <MudTh>Teléfono</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>
+            @context.NombreProveedor
+        </MudTd>
+        <MudTd>
+            @context.CorreoElectronico
+        </MudTd>
+        <MudTd>
+            @context.Telefono
+        </MudTd>
+    </RowTemplate>
+    <RowEditingTemplate>
+        <MudTd DataLabel="Proveedor">
+            <MudTextField @bind-Value="context.NombreProveedor" Required RequiredError="Ingresa el nombre del proveedor"/>
+        </MudTd>
+        <MudTd DataLabel="Correo">
+            <MudTextField @bind-Value="context.CorreoElectronico" For="@(() => context.CorreoElectronico)"  Validation="@(new Func<string,string>(ValidarCorreo))" />
+
+        </MudTd>
+        <MudTd DataLabel="Teléfono">
+            <MudTextField @bind-Value="context.Telefono" Mask="@(new PatternMask("0000 0000"))"/>
+        </MudTd>
+    </RowEditingTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100}"
+                       RowsPerPageString="Filas por página:"
+                       HorizontalAlignment="HorizontalAlignment.Center"
+                       HidePageNumber="true" />
+    </PagerContent>
+    <EditButtonContent Context="button">
+        <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
+    </EditButtonContent>
+</MudTable>
 
 @code {
+    private List<Proveedor> proveedoresInternos = new();
 
+    private string searchString1 = "";
+
+    private Proveedor proveedorBackup = new();
+
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        proveedoresInternos = await proveedorUseCase.ObtenerProveedores();
+    }
+
+    // Esto es lo que se mostrará en la tabla
+    private IEnumerable<Proveedor> Proveedors => proveedoresInternos;
+
+    private async Task AbrirNuevoProveedor()
+    {
+        var dialog = await DialogService.ShowAsync<CrearProveedorDialog>("Nuevo Proveedor", _maxWidth);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is Proveedor nuevo)
+        {
+            proveedoresInternos.Add(nuevo);
+        }
+    }
+
+    private void RespaldarProveedor(object proveedor)
+    {
+        if (proveedor is Proveedor proveedorRespaldo)
+        {
+            proveedorBackup = new Proveedor()
+                {
+                    IdProveedor = proveedorRespaldo.IdProveedor,
+                    NombreProveedor = proveedorRespaldo.NombreProveedor,
+                    Telefono = proveedorRespaldo.Telefono,
+                    CorreoElectronico = proveedorRespaldo.CorreoElectronico
+                };
+        }
+    }
+
+    private async void ActualizarProveedor(object proveedor)
+    {
+        if (proveedor is Proveedor proveedorActualizar)
+        {
+            if (ProveedorNecesitaActualizarse(proveedorActualizar))
+            {
+                try
+                {
+                    await proveedorUseCase.ActualizarProveedor(proveedorActualizar.IdProveedor, proveedorActualizar);
+                    Snackbar.Add($"El proveedor {proveedorActualizar.NombreProveedor} fué actualizado exitosamente", Severity.Success);
+                }
+                catch (Exception)
+                {
+                    Snackbar.Add($"Ocurrió un error al actualizar el proveedor {proveedorActualizar.NombreProveedor}", Severity.Error);
+                }
+
+            }
+        }
+    }
+
+    private bool ProveedorNecesitaActualizarse(Proveedor proveedorActualizar)
+    {
+        var necesitaActualizarse = proveedorBackup.NombreProveedor != proveedorActualizar.NombreProveedor ||
+                                    proveedorBackup.Telefono != proveedorActualizar.Telefono ||
+                                    proveedorBackup.CorreoElectronico != proveedorActualizar.CorreoElectronico;
+
+        return necesitaActualizarse;
+    }
+
+    private bool FilterFunc1(Proveedor element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Proveedor element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.NombreProveedor.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Telefono.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.CorreoElectronico.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private string ValidarCorreo(string correo)
+    {
+        if (string.IsNullOrEmpty(correo))
+            return null;
+
+        // Patrón básico para correos electrónicos
+        string patron = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+        if (!Regex.IsMatch(correo, patron))
+        {
+            return "El correo electrónico no es válido.";
+        }
+        return null;
+    }
 }

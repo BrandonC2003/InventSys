@@ -1,0 +1,69 @@
+﻿<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">Nuevo proveedor</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="@crearProveedorDto" OnValidSubmit="Submit" id="createProviderForm">
+            <DataAnnotationsValidator />
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+            }
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Label="Proveedor" @bind-Value="crearProveedorDto.NombreProveedor" For="@(() => crearProveedorDto.NombreProveedor)" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Correo" @bind-Value="crearProveedorDto.CorreoElectronico" For="@(() => crearProveedorDto.CorreoElectronico)" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Teléfono" @bind-Value="crearProveedorDto.Telefono" Mask="@(new PatternMask("0000 0000"))" />
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" OnClick="Cancel" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Form="createProviderForm">Crear proveedor</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Inject]
+    private ProveedorUseCase ProveedorUseCase { get; set; }
+
+
+    private CrearProveedorDto crearProveedorDto = new();
+
+    private string errorMessage = string.Empty;
+
+    private async Task Submit()
+    {
+        errorMessage = string.Empty;
+        try
+        {
+            var nuevoProveedor = new Proveedor()
+            {
+                NombreProveedor = crearProveedorDto.NombreProveedor,
+                CorreoElectronico = crearProveedorDto.CorreoElectronico,
+                Telefono = crearProveedorDto.Telefono
+            };
+            var ProveedorCreado = await ProveedorUseCase.CrearProveedor(nuevoProveedor);
+            MudDialog.Close(DialogResult.Ok(ProveedorCreado));
+        }
+        catch (UserException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            errorMessage = "Ocurrió un error al crear el proveedor";
+        }
+
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+}
