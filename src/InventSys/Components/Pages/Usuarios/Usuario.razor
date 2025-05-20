@@ -1,4 +1,5 @@
 ﻿@page "/Usuario"
+@using System.Text.RegularExpressions
 @attribute [Authorize(Roles = "Administrador")]
 
 @inject IDialogService DialogService
@@ -74,13 +75,14 @@
             </MudSelect>
         </MudTd>
         <MudTd DataLabel="Nombre">
-            <MudTextField @bind-Value="context.Nombre" Required />
+            <MudTextField @bind-Value="context.Nombre" Required RequiredError="Ingresa el nombre del usuario"/>
         </MudTd>
         <MudTd DataLabel="Apellido">
-            <MudTextField @bind-Value="context.Apellido" Required />
+            <MudTextField @bind-Value="context.Apellido" Required RequiredError="Ingresa el apellido"/>
         </MudTd>
         <MudTd DataLabel="Correo">
-            <MudTextField @bind-Value="context.CorreoElectronico" Required />
+            <MudTextField @bind-Value="context.CorreoElectronico" Required RequiredError="El correo electrónico es requerido" 
+                    Validation="@(new Func<string,string>(ValidarCorreo))" />
         </MudTd>
         <MudTd DataLabel="Activo">
             <MudSwitch @bind-Value="context.Activo" Color="Color.Success" UncheckedColor="Color.Error" />
@@ -196,5 +198,19 @@
         if (element.CorreoElectronico.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
         return false;
+    }
+
+    private string ValidarCorreo(string correo)
+    {
+        if (string.IsNullOrEmpty(correo))
+            return null;
+
+        // Patrón básico para correos electrónicos
+        string patron = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+        if (!Regex.IsMatch(correo, patron))
+        {
+            return "El correo electrónico no es válido.";
+        }
+        return null;
     }
 }
