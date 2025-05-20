@@ -9,7 +9,7 @@
 <MudText Typo="Typo.h4" Class="mb-4">Proveedores</MudText>
 
 <MudTable Items="@Proveedors" Hover="true" Filter="new Func<Proveedor,bool>(FilterFunc1)" SortLabel="Ordenar Por"
-          RowEditCommit="ActualizarProveedor" RowEditPreview="RespaldarProveedor" EditTrigger="TableEditTrigger.EditButton">
+          RowEditCommit="ActualizarProveedor" RowEditPreview="RespaldarProveedor" EditTrigger="TableEditTrigger.EditButton" CanCancelEdit="true">
     <ToolBarContent>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AbrirNuevoProveedor">
             <MudIcon Icon="@Icons.Material.Filled.Add" /> Nuevo Proveedor

@@ -10,7 +10,7 @@
 <MudText Typo="Typo.h4" Class="mb-4">Usuarios</MudText>
 
 <MudTable Items="@Usuarios" Hover="true" Filter="new Func<Usuarios,bool>(FilterFunc1)" SortLabel="Ordenar Por"
-          RowEditCommit="ActualizarUsuario" RowEditPreview="RespaldarUsuario" EditTrigger="TableEditTrigger.EditButton">
+          RowEditCommit="ActualizarUsuario" RowEditPreview="RespaldarUsuario" EditTrigger="TableEditTrigger.EditButton" CanCancelEdit="true">
     <ToolBarContent>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AbrirNuevoUsuario">
             <MudIcon Icon="@Icons.Material.Filled.Add" /> Nuevo Usuario
