@@ -71,6 +71,19 @@ namespace InventSys.Infrastructure.Services
             await dbContext1.SaveChangesAsync();
         }
 
+        public async Task IncrementarStock(int idProducto, int cantidad, object? dbContext = null)
+        {
+            EF.InventSysDbContext dbContext1 = dbContext as EF.InventSysDbContext ?? _context;
+
+            var producto = await dbContext1.Productos.FindAsync(idProducto) ??
+                throw new KeyNotFoundException("No se encontró un producto con ese id");
+
+            producto.Stok += cantidad;
+
+            dbContext1.Productos.Update(producto);
+            await dbContext1.SaveChangesAsync();
+        }
+
         public async Task EliminarProducto(int id)
         {
             var productoEliminar = await _context.Productos.FindAsync(id) ??
