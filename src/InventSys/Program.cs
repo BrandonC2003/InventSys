@@ -41,6 +41,7 @@ builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IAuditoriaProductoService, AuditoriaProductoService>();
 builder.Services.AddScoped<ITrazaAlertaService, TrazaAlertaService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
+builder.Services.AddScoped<ICompraService, CompraService>();
 builder.Services.AddScoped<UsuarioUseCase>();
 builder.Services.AddScoped<ProveedorUseCase>();
 builder.Services.AddScoped<CategoriaUseCase>();
