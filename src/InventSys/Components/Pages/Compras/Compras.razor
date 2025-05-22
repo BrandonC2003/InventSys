@@ -1,0 +1,251 @@
+﻿@page "/Compras"
+@attribute [Authorize(Roles = "Administrador, Almacenista")]
+
+@inject IDialogService DialogService
+@inject ProductoUseCase productoUseCase
+@inject CompraUseCase compraUseCase
+@inject UsuarioUseCase usuarioUseCase
+@inject ISnackbar Snackbar
+@using System.ComponentModel.DataAnnotations
+
+<MudText Typo="Typo.h4" Class="mb-4">Compras</MudText>
+
+<!-- Formulario superior -->
+<MudPaper Class="p-4 mb-4" Elevation="1">
+    <MudForm @ref="detalleCompraForm" @bind-IsValid="isValidDetalleCompraForm">
+        <MudGrid Spacing="2">
+            <MudItem xs="12" sm="6">
+                <MudAutocomplete T="Producto"
+                                 Label="Producto"
+                                 @bind-Value="producto"
+                                 ToStringFunc="@(p => p?.NombreProducto ?? string.Empty)"
+                                 SearchFunc="BuscarProducto"
+                                 Dense="true"
+                                 Clearable="true"
+                                 Validation="@(new Func<Producto,string>(ValidarProductoSeleccionado))"
+                                 onselect="@(() => OnSelectProducto())" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudNumericField Label="Cantidad"
+                                 T="int"
+                                 @bind-Value="cantidad"
+                                 Min="1"
+                                 Dense="true" />
+            </MudItem>
+            <MudItem xs="9" sm="6">
+                <MudNumericField Label="Precio del Producto"
+                                 T="double"
+                                 @bind-Value="nuevoPrecioCompra"
+                                 Min="0.01"
+                                 Dense="true"
+                                 Disabled="@(!actualizarPrecioCompra)"/>
+                <MudSwitch @bind-Value="actualizarPrecioCompra" Label="Actualizar precio" LabelPlacement="Placement.Start" Color="Color.Success" UncheckedColor="Color.Error" />
+            </MudItem>
+            <MudItem xs="12" sm="6" Class="d-flex align-items-end justify-end">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="AgregarProducoACompra">
+                    Agregar
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudForm>
+</MudPaper>
+
+<!-- Tabla de productos agregados -->
+<MudTable Items="@detalleCompras" Hover="true" Elevation="1" CustomFooter="true">
+    <HeaderContent>
+        <MudTh>Producto</MudTh>
+        <MudTh>Cantidad</MudTh>
+        <MudTh>Precio Unitario</MudTh>
+        <MudTh>Sub Total</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.IdProductoNavigation.NombreProducto</MudTd>
+        <MudTd>@context.Cantidad</MudTd>
+        <MudTd>@context.PrecioUnitario.ToString("C")</MudTd>
+        <MudTd>@(CalcularSubTotal(context.Cantidad, context.PrecioUnitario).ToString("C"))</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => EliminarCompraProducto(context))" />
+        </MudTd>
+    </RowTemplate>
+    <FooterContent>
+        <MudTFootRow>
+            <MudTd colspan="2">
+            </MudTd>
+            <MudTd>
+                <b>Total:</b>
+            </MudTd>
+            <MudTd>
+                @(ObtenerPrecioTotal().ToString("C"))
+            </MudTd>
+            <MudTd></MudTd>
+        </MudTFootRow>
+    </FooterContent>
+</MudTable>
+
+<!-- Confirmar venta -->
+<MudPaper Class="d-flex justify-end p-4 mb-4">
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Check"
+               OnClick="ConfirmarVenta"
+               Disabled="@(!detalleCompras.Any())">
+        Confirmar
+    </MudButton>
+</MudPaper>
+
+@code {
+    private List<DetalleCompra> detalleComprasInterno = new();
+    private IEnumerable<DetalleCompra> detalleCompras => detalleComprasInterno;
+    private List<Producto> productos = new();
+    private List<Producto> productosCambiarPrecio = new();
+
+    private Producto producto = new();
+    private int cantidad = 1;
+    private bool actualizarPrecioCompra = false;
+    private double nuevoPrecioCompra;
+
+    private decimal CalcularSubTotal(int cantidad, decimal precio) => cantidad * precio;
+
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+    MudForm detalleCompraForm;
+    private bool isValidDetalleCompraForm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        productos = await productoUseCase.ObtenerProductos();
+    }
+
+    private Task<IEnumerable<Producto>> BuscarProducto(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult((IEnumerable<Producto>)productos);
+
+        return Task.FromResult(productos.Where(p =>
+            p.NombreProducto.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private void AgregarProducoACompra()
+    {
+        detalleCompraForm.Validate();
+
+        if (!isValidDetalleCompraForm)
+            return;
+
+
+        if (actualizarPrecioCompra)
+        {
+            producto.PrecioCompra = (decimal)nuevoPrecioCompra;
+
+            var productoExistentePrecio = productosCambiarPrecio.FirstOrDefault(p => p.IdProducto == producto.IdProducto);
+            if (productoExistentePrecio != null)
+            {
+                productoExistentePrecio = producto;
+            }
+            else
+            {
+                productosCambiarPrecio.Add(producto);
+            }
+        }
+
+        var productoExistenteCompras = detalleComprasInterno.FirstOrDefault(d => d.IdProducto == producto.IdProducto);
+
+        if (productoExistenteCompras != null)
+        {
+            // Producto ya en la lista: sumar cantidad
+            productoExistenteCompras.Cantidad += cantidad;
+            productoExistenteCompras.PrecioUnitario = actualizarPrecioCompra ? (decimal)nuevoPrecioCompra : productoExistenteCompras.PrecioUnitario;
+        }
+        else
+        {
+            // Producto nuevo: agregar a la lista
+            detalleComprasInterno.Add(new DetalleCompra
+                {
+                    IdProducto = producto.IdProducto,
+                    Cantidad = cantidad,
+                    PrecioUnitario = producto.PrecioCompra,
+                    IdProductoNavigation = producto
+                });
+        }
+
+
+        // Reset campos
+        producto = new();
+        cantidad = 1;
+        actualizarPrecioCompra = false;
+        nuevoPrecioCompra = 0;
+    }
+
+    private decimal ObtenerPrecioTotal()
+    {
+        return detalleComprasInterno.Sum(d => CalcularSubTotal(d.Cantidad, d.PrecioUnitario));
+    }
+
+    private async Task ConfirmarVenta()
+    {
+        var dialog = await DialogService.ShowAsync<ConfirmarCompraDialog>("Confirmar compra", new DialogParameters { { "PrecioTotal", ObtenerPrecioTotal() } }, _maxWidth);
+        var result = await dialog.Result;
+        if (!result.Canceled && result.Data is bool confirmado)
+        {
+            if (confirmado)
+            {
+                try
+                {
+                    var compra = new
+                    Compra
+                        {
+                            DetalleCompras = detalleComprasInterno,
+                            PrecioTotal = ObtenerPrecioTotal(),
+                            FechaCompra = DateTime.Now,
+                            IdUsuario = await usuarioUseCase.GetUserIdAsync()
+                        };
+
+                    await compraUseCase.RegistrarCompraAsync(compra);
+
+                    foreach (var producto in productosCambiarPrecio)
+                    {
+                        await productoUseCase.ActualizarProducto(producto.IdProducto, producto, "Cambio de precio de compra");
+                    }
+
+                    Snackbar.Add("Compra registrada correctamente.", Severity.Success);
+                    detalleComprasInterno.Clear();
+                }
+                catch (CustomExeption ex)
+                {
+                    Snackbar.Add(ex.Message, Severity.Error);
+                }
+                catch (Exception)
+                {
+                    Snackbar.Add("Ocurrió un error al registrar la compra", Severity.Error);
+                }
+
+            }
+        }
+    }
+
+    private string ValidarProductoSeleccionado(Producto productoSeleccioando)
+    {
+        if (productoSeleccioando != null && productoSeleccioando.IdProducto > 0)
+            return null;
+        return "Selecciona un producto válido";
+    }
+
+    private void EliminarCompraProducto(DetalleCompra compraProducto)
+    {
+        productosCambiarPrecio.Remove(compraProducto.IdProductoNavigation);
+        detalleComprasInterno.Remove(compraProducto);
+    }
+
+    private void OnSelectProducto()
+    {
+        detalleCompraForm.Validate();
+        nuevoPrecioCompra = (double)producto.PrecioCompra;
+        //Desactivo la actualización del producto si la selección es correcta
+        actualizarPrecioCompra = !isValidDetalleCompraForm;
+    }
+}

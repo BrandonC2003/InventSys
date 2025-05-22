@@ -10,7 +10,7 @@
     </AuthorizeView>
 
     <AuthorizeView Roles="Administrador,Almacenista">
-        <MudNavLink Icon="@Icons.Material.Filled.ShoppingCart" Href="/">Compras</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.ShoppingCart" Href="/Compras">Compras</MudNavLink>
     </AuthorizeView>
 
     @if (usuario.IsInRol("Administrador") || usuario.IsInRol("Almacenista"))
