@@ -1,0 +1,65 @@
+﻿<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">Nueva categoría</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="@crearCategoriaDto" OnValidSubmit="Submit" id="createCategoryForm">
+            <DataAnnotationsValidator />
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+            }
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Label="Proveedor" @bind-Value="crearCategoriaDto.NombreCategoria" For="@(() => crearCategoriaDto.NombreCategoria)" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="Descripción" @bind-Value="crearCategoriaDto.Descripcion" For="@(() => crearCategoriaDto.Descripcion)" Lines="3"/>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" OnClick="Cancel" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Form="createCategoryForm">Crear categoría</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Inject]
+    private CategoriaUseCase CategoriaUseCase { get; set; }
+
+
+    private CrearCategoriaDto crearCategoriaDto = new();
+
+    private string errorMessage = string.Empty;
+
+    private async Task Submit()
+    {
+        errorMessage = string.Empty;
+        try
+        {
+            var nuevaCategoria = new Categoria()
+                {
+                    NombreCategoria = crearCategoriaDto.NombreCategoria,
+                    Descripcion = crearCategoriaDto.Descripcion
+                };
+            var ProveedorCreado = await CategoriaUseCase.CrearCategoria(nuevaCategoria);
+            MudDialog.Close(DialogResult.Ok(ProveedorCreado));
+        }
+        catch (CustomExeption ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            errorMessage = "Ocurrió un error al crear la categoría";
+        }
+
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+}

@@ -1,0 +1,140 @@
+﻿@page "/Categorias"
+@using System.Text.RegularExpressions
+@attribute [Authorize(Roles = "Administrador, Almacenista")]
+
+@inject IDialogService DialogService
+@inject CategoriaUseCase categoriaUseCase
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">Categorias</MudText>
+
+<MudTable Items="@CategoriasPublic" Hover="true" Filter="new Func<Categoria,bool>(FilterFunc1)" SortLabel="Ordenar Por"
+          RowEditCommit="ActualizarCategoria" RowEditPreview="RespaldarCategoria" EditTrigger="TableEditTrigger.EditButton" CanCancelEdit="true">
+    <ToolBarContent>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AbrirNuevoProveedor">
+            <MudIcon Icon="@Icons.Material.Filled.Add" /> Nueva categoría
+        </MudButton>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Categoria, object>(x=>x.NombreCategoria)">
+                Categoria
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>Descripción</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>
+            @context.NombreCategoria
+        </MudTd>
+        <MudTd>
+            @context.Descripcion
+        </MudTd>
+    </RowTemplate>
+    <RowEditingTemplate>
+        <MudTd DataLabel="Categoria">
+            <MudTextField @bind-Value="context.NombreCategoria" Required RequiredError="Ingresa el nombre de la categoría" />
+        </MudTd>
+        <MudTd DataLabel="Descripción">
+            <MudTextField @bind-Value="context.Descripcion"/>
+        </MudTd>
+    </RowEditingTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100}"
+                       RowsPerPageString="Filas por página:"
+                       HorizontalAlignment="HorizontalAlignment.Center"
+                       HidePageNumber="true" />
+    </PagerContent>
+    <EditButtonContent Context="button">
+        <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
+    </EditButtonContent>
+</MudTable>
+
+@code {
+    private List<Categoria> categoriasInternas = new();
+
+    private string searchString1 = "";
+
+    private Categoria categoriaBackup = new();
+
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        categoriasInternas = await categoriaUseCase.ObtenerCategorias();
+    }
+
+    // Esto es lo que se mostrará en la tabla
+    private IEnumerable<Categoria> CategoriasPublic => categoriasInternas;
+
+    private async Task AbrirNuevoProveedor()
+    {
+        var dialog = await DialogService.ShowAsync<CrearCategoriaDialog>("Nueva Categoria", _maxWidth);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is Categoria nuevaCategoria)
+        {
+            categoriasInternas.Add(nuevaCategoria);
+        }
+    }
+
+    private void RespaldarCategoria(object categoria)
+    {
+        if (categoria is Categoria categoriaRespaldo)
+        {
+            categoriaBackup = new Categoria()
+                {
+                    IdCategoria = categoriaRespaldo.IdCategoria,
+                    NombreCategoria = categoriaRespaldo.NombreCategoria,
+                    Descripcion = categoriaRespaldo.Descripcion
+                };
+        }
+    }
+
+    private async void ActualizarCategoria(object proveedor)
+    {
+        if (proveedor is Categoria categoriaActualizar)
+        {
+            if (CategoriaNecesitaActualizarse(categoriaActualizar))
+            {
+                try
+                {
+                    await categoriaUseCase.ActualizarCategoria(categoriaActualizar.IdCategoria, categoriaActualizar);
+                    Snackbar.Add($"La categoría {categoriaActualizar.NombreCategoria} fué actualizado exitosamente", Severity.Success);
+                }
+                catch(CustomExeption ex)
+                {
+                    Snackbar.Add(ex.Message,Severity.Warning);
+                }
+                catch (Exception)
+                {
+                    Snackbar.Add($"Ocurrió un error al actualizar la categoría {categoriaActualizar.NombreCategoria}", Severity.Error);
+                }
+
+            }
+        }
+    }
+
+    private bool CategoriaNecesitaActualizarse(Categoria categoriaActualizar)
+    {
+        var necesitaActualizarse = categoriaBackup.IdCategoria != categoriaActualizar.IdCategoria ||
+                                    categoriaBackup.NombreCategoria != categoriaActualizar.NombreCategoria ||
+                                    categoriaBackup.Descripcion != categoriaActualizar.Descripcion;
+
+        return necesitaActualizarse;
+    }
+
+    private bool FilterFunc1(Categoria element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Categoria element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.NombreCategoria.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}

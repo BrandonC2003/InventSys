@@ -114,6 +114,10 @@
                     await proveedorUseCase.ActualizarProveedor(proveedorActualizar.IdProveedor, proveedorActualizar);
                     Snackbar.Add($"El proveedor {proveedorActualizar.NombreProveedor} fué actualizado exitosamente", Severity.Success);
                 }
+                catch (CustomExeption ex)
+                {
+                    Snackbar.Add(ex.Message, Severity.Warning);
+                }
                 catch (Exception)
                 {
                     Snackbar.Add($"Ocurrió un error al actualizar el proveedor {proveedorActualizar.NombreProveedor}", Severity.Error);
