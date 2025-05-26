@@ -6,6 +6,7 @@ namespace InventSys.Domain.Interfaces
     {
         Task<List<Venta>> ObtenerVentaAsync(int idVenta);
 
+        Task<List<Venta>> ReporteDeVentas(DateTime fechaInicio, DateTime fechaFin);
         /// <summary>
         /// Registra una venta en la base de datos y actualiza el stock de los productos vendidos.
         /// </summary>

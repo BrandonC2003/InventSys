@@ -89,5 +89,44 @@ namespace InventSys.Infrastructure.Services
 
             return ventas;
         }
+
+        public async Task<List<Venta>> ReporteDeVentas(DateTime fechaInicio, DateTime fechaFin)
+        {
+            var ventas = await _context.Ventas
+                .Where(v => v.FechaVenta >= fechaInicio && v.FechaVenta <= fechaFin)
+                .Include(v => v.DetalleVenta)
+                    .ThenInclude(dv => dv.IdProductoNavigation)
+                .Include(v => v.IdUsuarioNavigation)
+                .Select(v => new Venta
+                {
+                    IdVenta = v.IdVenta,
+                    IdUsuario = v.IdUsuario,
+                    PrecioTotal = v.PrecioTotal,
+                    FechaVenta = v.FechaVenta,
+                    DetalleVenta = v.DetalleVenta
+                        .Select(d => new DetalleVenta
+                        {
+                            IdVenta = d.IdVenta,
+                            IdProducto = d.IdProducto,
+                            Cantidad = d.Cantidad,
+                            PrecioUnitario = d.PrecioUnitario,
+                            IdProductoNavigation = new Producto
+                            {
+                                NombreProducto = d.IdProductoNavigation.NombreProducto
+                            }
+                        }).ToList(),
+                    IdUsuarioNavigation = new Usuarios()
+                    {
+                        IdUsuario = v.IdUsuarioNavigation.IdUsuario,
+                        UserName = v.IdUsuarioNavigation.UserName,
+                        IdRol = v.IdUsuarioNavigation.IdRol,
+                        Nombre = v.IdUsuarioNavigation.Nombre,
+                        Apellido = v.IdUsuarioNavigation.Apellido,
+                        CorreoElectronico = v.IdUsuarioNavigation.CorreoElectronico
+                    }
+                }).ToListAsync();
+
+            return ventas;
+        }
     }
 }

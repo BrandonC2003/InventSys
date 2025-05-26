@@ -42,11 +42,7 @@ namespace InventSys.Pages.Account
             try
             {
                 int userId = await _usuarioUseCase.IniciarSesionAsync(Input);
-                if (userId >= 0)
-                {
-                    await _usuarioUseCase.CambiarEstadoAsync(userId, UserStatus.Conectado);
-                }
-                else
+                if (userId <= 0)
                 {
                     ErrorMessage = "Las credenciales son incorrectas";
                     return Page();

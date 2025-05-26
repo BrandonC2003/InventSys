@@ -39,11 +39,7 @@ namespace InventSys.Application.UseCases
         {
             int userId = await GetUserIdAsync();
 
-            //Se valida que el usuario sea valido para evitar excepciones
-            if (userId > 0)
-            {
-                await CambiarEstadoAsync(userId, UserStatus.FueraSistema);
-            }
+            
             return await _authService.CerrarSesionAsync(userId);
         }
 

@@ -1,8 +1,224 @@
 ﻿@page "/"
 @attribute [Authorize]
+@inject ProductoUseCase productoUseCase
+@inject CategoriaUseCase categoriaUseCase
+@inject VentaUseCase ventaUseCase
+@inject UsuarioUseCase usuario
 
-<PageTitle>Home</PageTitle>
+<MudText Typo="Typo.h4" Class="mb-4">Bienvenido al sistema</MudText>
 
-<h1>Hello, world!</h1>
+@if (usuario.IsInRol("Administrador"))
+{
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Productos con stok bajo</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTable Items="productosStokBajo">
+                        <HeaderContent>
+                            <MudTh>
+                                Producto
+                            </MudTh>
+                            <MudTh>
+                                Stok
+                            </MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>
+                                @context.NombreProducto
+                            </MudTd>
+                            <MudTd>
+                                @context.Stok
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Top 10 productos más vendidos del mes</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudChart ChartType="ChartType.Pie" InputData="totalVentas" InputLabels="nombreProductos" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSelect T="Categoria"
+                    Label="Categorias"
+                    MultiSelection="true"
+                    SelectAll="true"
+                    SelectAllText="Todo"
+                    ToStringFunc="@(c => c.NombreCategoria)"
+                    @bind-SelectedValues="categoriasSeleccionadas">
 
-Welcome to your new app.
+                        @if (categorias is null)
+                        {
+                            <MudSelectItem T="Categoria" Disabled="true">Cargando...</MudSelectItem>
+                        }
+                        else
+                        {
+                            @foreach (var categoria in categorias)
+                            {
+                                <MudSelectItem T="Categoria" Value="@categoria">@categoria.NombreCategoria</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                    <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Search" Color="Color.Primary" OnClick="LlenarReporteProductosMasVendidos">Buscar</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Reporte de ventas</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTable Items="ventas">
+                        <HeaderContent>
+                            <MudTh>
+                                Id Venta
+                            </MudTh>
+                            <MudTh>
+                                Producto
+                            </MudTh>
+                            <MudTh>
+                                Cantidad
+                            </MudTh>
+                            <MudTh>
+                                Precio unitario
+                            </MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>
+                                @context.IdVenta
+                            </MudTd>
+                            <MudTd>
+                                @context.IdProductoNavigation.NombreProducto
+                            </MudTd>
+                            <MudTd>
+                                @context.Cantidad
+                            </MudTd>
+                            <MudTd>
+                                @context.PrecioUnitario
+                            </MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudTablePager />
+                        </PagerContent>
+                    </MudTable>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudDatePicker Label="Desde" Editable="true" @bind-Date="fechaDesde" />
+                    <MudDatePicker Label="Hasta" Editable="true" @bind-Date="fechaHasta" />
+                    <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Search" Color="Color.Primary" OnClick="LlenarReporteVentas">Buscar</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+}
+@if (usuario.IsInRol("Almacenista"))
+{
+    <MudGrid>
+        <MudItem xs="12">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Productos con stok bajo</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTable Items="productosStokBajo">
+                        <HeaderContent>
+                            <MudTh>
+                                Producto
+                            </MudTh>
+                            <MudTh>
+                                Stok
+                            </MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>
+                                @context.NombreProducto
+                            </MudTd>
+                            <MudTd>
+                                @context.Stok
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+}
+
+@code{
+    private string userName = string.Empty;
+    private List<Categoria> categorias;
+    //Stok bajo
+    private List<Producto> productosStokBajo;
+
+    //Productos más vendidos
+    private double[] totalVentas;
+    private string[] nombreProductos;
+    private IEnumerable<Categoria> categoriasSeleccionadas = new List<Categoria>();
+
+    //Reporte de ventas
+    private DateTime? fechaDesde = DateTime.Today;
+    private DateTime? fechaHasta = DateTime.Today;
+    private List<DetalleVenta> ventas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(usuario.IsInRol("Administrador") || usuario.IsInRol("Almacenista"))
+        {
+            categorias = await categoriaUseCase.ObtenerCategorias();
+            categoriasSeleccionadas = categorias;
+            await LlenarReporteStokBajo();
+        }
+        if (usuario.IsInRol("Administrador"))
+        {
+            await LlenarReporteProductosMasVendidos();
+            await LlenarReporteVentas();
+        }
+
+    }
+
+    private async Task LlenarReporteStokBajo()
+    {
+        productosStokBajo = await productoUseCase.ObtenerProductosStokBajo();
+    }
+
+    private async Task LlenarReporteProductosMasVendidos()
+    {
+        var hoy = DateTime.Today;
+
+        // Primer día del mes
+        var primerDiaMes = new DateTime(hoy.Year, hoy.Month, 1);
+
+        // Último día del mes
+        var ultimoDiaMes = primerDiaMes.AddMonths(1);
+
+        List<int> idCategorias = categoriasSeleccionadas.Select(c => c.IdCategoria).ToList();
+
+        var productosVendidos = await productoUseCase.ReporteDeProductosMasVendidos(10, idCategorias, primerDiaMes, ultimoDiaMes);
+
+        totalVentas = productosVendidos.Select(pv => Convert.ToDouble(pv.CantidadVendida)).ToArray();
+        nombreProductos = productosVendidos.Select(pv => pv.NombreProducto).ToArray();
+    }
+
+    private async Task LlenarReporteVentas()
+    {
+        var reporteVentas = await ventaUseCase.ReporteDeVentas(Convert.ToDateTime(fechaDesde), Convert.ToDateTime(fechaHasta));
+        ventas = reporteVentas.SelectMany(v => v.DetalleVenta).ToList();
+    }
+
+}

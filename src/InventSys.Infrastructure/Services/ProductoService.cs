@@ -203,8 +203,6 @@ namespace InventSys.Infrastructure.Services
         public async Task<List<Producto>> ObtenerProductosConStokBajo()
         {
             var productosStokBajo = await _context.Productos
-                .Include(p => p.IdProveedorNavigation)
-                .Include(p => p.IdCategoriaNavigation)
                 .Where(p => p.Stok <= p.StokBajo)
                 .Select(p => new Producto
                 {
@@ -240,6 +238,27 @@ namespace InventSys.Infrastructure.Services
                     t.EstadoAlerta == (byte)EstadoAlerta.Enviada);
 
             return tieneAlertas;
+        }
+
+        public async Task<List<ProductosVentas>> ReporteDeProductosMasVendidos(int cantidad, List<int> idCategorias, DateTime fechaInicio, DateTime fechaFin)
+        {
+            var productosMasVendidos = await _context.DetalleVenta
+                .Include(dv => dv.IdProductoNavigation)
+                .Include(dv => dv.IdVentaNavigation)
+                .Where(dv => idCategorias.Contains(dv.IdProductoNavigation.IdCategoria) &&
+                             dv.IdVentaNavigation.FechaVenta >= fechaInicio &&
+                             dv.IdVentaNavigation.FechaVenta <= fechaFin)
+                .GroupBy(dv => dv.IdProductoNavigation.NombreProducto)
+                .Select(g => new ProductosVentas
+                {
+                    NombreProducto = g.Key,
+                    CantidadVendida = g.Sum(dv => dv.Cantidad)
+                })
+                .OrderByDescending(g => g.CantidadVendida)
+                .Take(cantidad)
+                .ToListAsync();
+
+            return productosMasVendidos;
         }
     }
 }

@@ -30,6 +30,11 @@ namespace InventSys.Application.UseCases
             }
         }
 
+        public async Task<List<Producto>> ObtenerProductosStokBajo()
+        {
+            return await _productoService.ObtenerProductosConStokBajo();
+        }
+
         public async Task<Producto> ObtenerProductoPorNombre(string nombreProducto)
         {
             try
@@ -40,6 +45,11 @@ namespace InventSys.Application.UseCases
             {
                 throw new CustomExeption(ex.Message);
             }
+        }
+
+        public async Task<List<ProductosVentas>> ReporteDeProductosMasVendidos(int cantidad, List<int> idCategorias, DateTime fechaInicio, DateTime fechaFin)
+        {
+            return await _productoService.ReporteDeProductosMasVendidos(cantidad, idCategorias, fechaInicio, fechaFin);
         }
 
         public async Task<Producto> CrearProducto(Producto producto)

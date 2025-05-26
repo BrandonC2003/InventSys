@@ -31,5 +31,6 @@ namespace InventSys.Domain.Interfaces
         /// <param name="minutosAConsiderar"></param>
         /// <returns></returns>
         Task<bool> TieneAlertas(int idProducto, int minutosAConsiderar);
+        Task<List<ProductosVentas>> ReporteDeProductosMasVendidos(int cantidad, List<int> idCategorias, DateTime fechaInicio, DateTime fechaFin);
     }
 }

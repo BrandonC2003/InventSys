@@ -13,5 +13,10 @@ namespace InventSys.Application.UseCases
         {
             return await _ventaService.ObtenerVentaAsync(idVenta);
         }
+
+        public async Task<List<Domain.Entities.Venta>> ReporteDeVentas(DateTime fechaInicio, DateTime fechaFin)
+        {
+            return await _ventaService.ReporteDeVentas(fechaInicio, fechaFin);
+        }
     }
 }
