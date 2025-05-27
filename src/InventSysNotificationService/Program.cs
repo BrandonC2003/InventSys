@@ -20,7 +20,7 @@ builder.Logging.ClearProviders();
 builder.Logging.AddSerilog();
 
 
-builder.Services.AddHostedService<Worker>();
+builder.Services.AddHostedService<Worker>().AddWindowsService();
 
 builder.Services.AddDbContext<InventSysDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("InventSysDb")));
@@ -35,4 +35,5 @@ builder.Services.AddTransient<INotificationService, EmailService>();
 builder.Services.AddTransient<IRolCatalogoService, RolCatalogoService>();
 
 var host = builder.Build();
+
 host.Run();
