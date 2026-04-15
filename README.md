@@ -1,2 +1,2 @@
 # InventSys
-Sistema de gestión de inventario desarrollado para la asignatura de estándares de programación
+Sistema académico de gestión de inventario y ventas para PyMes
